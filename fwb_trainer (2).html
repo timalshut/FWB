@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FWB Börsenhändlerprüfung</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FWB Trainer">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1a1a2e">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231a1a2e'/%3E%3Ctext y='.9em' font-size='72' x='12'%3E📈%3C/text%3E%3C/svg%3E">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f5f0;color:#1a1a1a;min-height:100vh}
+.app{max-width:720px;margin:0 auto;padding:16px}
+.screen{display:none}.screen.active{display:block}
+.home-hero{background:#1a1a2e;color:white;border-radius:16px;padding:28px 24px;margin-bottom:16px}
+.home-hero h1{font-size:22px;font-weight:700;margin-bottom:4px}
+.home-hero p{font-size:13px;color:rgba(255,255,255,.55);margin-bottom:20px}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.stat-box{background:rgba(255,255,255,.08);border-radius:10px;padding:12px;text-align:center}
+.stat-box .val{font-size:24px;font-weight:700;color:white}
+.stat-box .lbl{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.mode-card{background:white;border:1px solid #e8e8e0;border-radius:14px;padding:18px;cursor:pointer;transition:all .15s;text-align:left}
+.mode-card:hover{border-color:#1a1a2e;transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.mode-card .icon{font-size:26px;margin-bottom:10px}
+.mode-card h2{font-size:15px;font-weight:600;margin-bottom:5px}
+.mode-card p{font-size:12px;color:#666;line-height:1.5}
+.mode-card .badge{font-size:10px;background:#eef;color:#446;padding:2px 7px;border-radius:8px;display:inline-block;margin-top:6px;font-weight:600}
+.quiz-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px}
+.q-counter{font-size:13px;color:#888;font-weight:500}
+.timer-badge{font-size:14px;font-weight:700;padding:6px 14px;border-radius:20px;background:white;border:1px solid #e0e0d8;letter-spacing:.5px}
+.timer-badge.warn{background:#fffbeb;border-color:#f59e0b;color:#92400e}
+.timer-badge.crit{background:#fef2f2;border-color:#ef4444;color:#991b1b;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.progress-track{height:4px;background:#e8e8e0;border-radius:2px;margin-bottom:16px;overflow:hidden}
+.progress-fill{height:100%;background:#1a1a2e;border-radius:2px;transition:width .4s ease}
+.q-type-pill{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:10px}
+.pill-tf{background:#dbeafe;color:#1e40af}
+.pill-sc{background:#dcfce7;color:#166534}
+.pill-mc{background:#fef3c7;color:#92400e}
+.q-text{font-size:15px;font-weight:600;line-height:1.55;margin-bottom:16px;color:#111}
+.ob-table{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:12px}
+.ob-table caption{text-align:left;font-size:11px;color:#888;margin-bottom:4px;font-style:italic}
+.ob-table th{background:#1a1a2e;color:white;padding:5px 8px;font-weight:600;font-size:10px;text-transform:uppercase}
+.ob-table td{padding:5px 8px;text-align:center;border-bottom:1px solid #eee}
+.ob-table tr:nth-child(even) td{background:#f7f7f2}
+.mastered-tag{font-size:10px;background:#dcfce7;color:#166534;padding:2px 8px;border-radius:8px;font-weight:600;display:inline-block;margin-left:8px;vertical-align:middle}
+.options{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.opt{display:flex;align-items:flex-start;gap:8px;padding:11px 14px;border:1.5px solid #e8e8e0;border-radius:12px;cursor:pointer;background:white;text-align:left;width:100%;transition:all .15s;font-family:inherit;font-size:14px}
+.opt:hover:not(:disabled){border-color:#aaa;background:#fafaf8}
+.opt:disabled{cursor:default}
+.opt.selected{border-color:#3b82f6;background:#eff6ff}
+.opt.correct{border-color:#22c55e;background:#f0fdf4}
+.opt.wrong{border-color:#ef4444;background:#fef2f2}
+.opt.missed{border-color:#22c55e;background:#f0fdf4;opacity:.85}
+.opt-num{font-size:11px;font-weight:700;color:#bbb;flex-shrink:0;margin-top:2px;min-width:16px}
+.opt.selected .opt-num{color:#3b82f6}
+.opt.correct .opt-num{color:#22c55e}
+.opt.wrong .opt-num{color:#ef4444}
+.opt.missed .opt-num{color:#22c55e}
+.opt-marker{width:18px;height:18px;flex-shrink:0;border-radius:4px;border:1.5px solid #ccc;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-top:2px;transition:all .15s}
+.opt-sc .opt-marker{border-radius:50%}
+.opt.selected .opt-marker{background:#3b82f6;border-color:#3b82f6;color:white}
+.opt.correct .opt-marker{background:#22c55e;border-color:#22c55e;color:white}
+.opt.wrong .opt-marker{background:#ef4444;border-color:#ef4444;color:white}
+.opt.missed .opt-marker{background:#22c55e;border-color:#22c55e;color:white}
+.opt-text{line-height:1.45;color:#1a1a1a;flex:1}
+.opt-tag{font-size:10px;font-weight:700;margin-left:6px;padding:1px 6px;border-radius:6px;flex-shrink:0;align-self:flex-start;margin-top:2px}
+.tag-you{background:#eff6ff;color:#3b82f6}
+.tag-correct{background:#dcfce7;color:#166534}
+.tf-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.tf-btn{padding:14px;border:1.5px solid #e8e8e0;border-radius:12px;cursor:pointer;font-size:15px;font-weight:600;background:white;transition:all .15s;font-family:inherit;position:relative}
+.tf-btn:hover:not(:disabled){background:#f5f5f0;border-color:#aaa}
+.tf-btn:disabled{cursor:default}
+.tf-btn.selected{border-color:#3b82f6;background:#eff6ff;color:#1d4ed8}
+.tf-btn.correct{border-color:#22c55e;background:#f0fdf4;color:#166534}
+.tf-btn.wrong{border-color:#ef4444;background:#fef2f2;color:#991b1b}
+.tf-btn.missed{border-color:#22c55e;background:#f0fdf4;color:#166534;opacity:.85}
+.tf-sub{font-size:10px;font-weight:700;display:block;margin-top:3px}
+.feedback-box{padding:11px 14px;border-radius:10px;font-size:13px;line-height:1.5;margin-bottom:8px;font-weight:500}
+.fb-correct{background:#f0fdf4;border:1px solid #86efac;color:#166534}
+.fb-wrong{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b}
+.explain-box{padding:12px 14px;border-radius:10px;font-size:13px;line-height:1.6;margin-bottom:12px;background:#f0f4ff;border:1px solid #c7d7f9;color:#1e3a5f;display:none}
+.explain-box.show{display:block}
+.explain-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#3b6fd4;margin-bottom:6px}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.btn{padding:10px 20px;border-radius:10px;border:1.5px solid #e0e0d8;background:white;cursor:pointer;font-size:14px;font-weight:600;font-family:inherit;transition:all .15s;color:#333}
+.btn:hover{background:#f5f5f0;border-color:#aaa}
+.btn-primary{background:#1a1a2e;color:white;border-color:#1a1a2e}
+.btn-primary:hover{background:#2d2d4a}
+.btn-explain{background:#3b6fd4;color:white;border-color:#3b6fd4}
+.btn-explain:hover{background:#2855b0}
+.btn-back{display:flex;align-items:center;gap:6px;background:none;border:none;font-size:14px;color:#888;cursor:pointer;padding:0 0 12px;font-family:inherit;font-weight:500}
+.btn-back:hover{color:#333}
+.result-card{background:white;border:1px solid #e8e8e0;border-radius:16px;padding:24px;text-align:center;margin-bottom:14px}
+.score-ring{width:130px;height:130px;border-radius:50%;border:6px solid;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:16px auto}
+.score-ring.pass{border-color:#22c55e}
+.score-ring.fail{border-color:#ef4444}
+.score-ring .pct{font-size:30px;font-weight:700}
+.score-ring .sub{font-size:12px;color:#888;margin-top:1px}
+.verdict{font-size:15px;font-weight:600;margin:12px 0}
+.verdict.pass{color:#166534}
+.verdict.fail{color:#991b1b}
+.detail-table{background:#fafaf8;border-radius:10px;padding:4px 0;margin:12px 0}
+.detail-row{display:flex;justify-content:space-between;padding:8px 14px;font-size:14px;border-bottom:1px solid #f0f0e8}
+.detail-row:last-child{border:none}
+.detail-row span:last-child{font-weight:600}
+.review-filters{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.rfchip{font-size:12px;padding:5px 12px;border-radius:20px;border:1.5px solid #e0e0d8;cursor:pointer;background:white;font-weight:600;color:#888;transition:all .15s}
+.rfchip.active{background:#1a1a2e;color:white;border-color:#1a1a2e}
+.review-item{background:white;border:1px solid #e8e8e0;border-radius:12px;padding:14px;margin-bottom:8px}
+.review-item.ri-correct{border-left:4px solid #22c55e}
+.review-item.ri-wrong{border-left:4px solid #ef4444}
+.ri-meta{font-size:11px;color:#999;font-weight:600;letter-spacing:.3px;margin-bottom:6px;text-transform:uppercase}
+.ri-q{font-size:13px;font-weight:600;margin-bottom:10px;line-height:1.4;color:#222}
+.ri-opts{display:flex;flex-direction:column;gap:4px;margin-bottom:6px}
+.ri-opt{display:flex;align-items:flex-start;gap:8px;padding:7px 10px;border-radius:8px;font-size:12px;line-height:1.4}
+.ri-opt.ro-correct{background:#dcfce7;color:#166534;font-weight:600}
+.ri-opt.ro-wrong{background:#fef2f2;color:#991b1b;font-weight:600}
+.ri-opt.ro-neutral{background:#f5f5f0;color:#666}
+.ri-opt-icon{flex-shrink:0;margin-top:0px}
+.ri-explain{font-size:12px;color:#1e3a5f;margin-top:8px;line-height:1.5;padding:8px 10px;background:#f0f4ff;border-radius:8px}
+.mastery-topic{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0e8;gap:12px}
+.mastery-topic:last-child{border:none}
+.mt-name{font-size:13px;font-weight:500;flex:1}
+.mt-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.mt-count{font-size:12px;color:#888;min-width:36px;text-align:right}
+.mt-bar{width:80px;height:6px;background:#e8e8e0;border-radius:3px;overflow:hidden}
+.mt-fill{height:100%;background:#1a1a2e;border-radius:3px;transition:width .5s ease}
+.mt-fill.full{background:#22c55e}
+.topic-list{display:flex;flex-direction:column;gap:6px}
+.topic-pick-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:white;border:1.5px solid #e0e0d8;border-radius:10px;cursor:pointer;transition:all .15s}
+.topic-pick-item:hover{border-color:#1a1a2e}
+.topic-pick-item.selected{border-color:#3b82f6;background:#eff6ff}
+.topic-pick-item input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#1a1a2e}
+.topic-pick-item span{font-size:13px;font-weight:500;flex:1}
+.topic-pick-item .tp-count{font-size:11px;color:#888}
+.exam-ready-banner{background:linear-gradient(135deg,#166534,#16a34a);color:white;border-radius:14px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:14px}
+.er-icon{font-size:36px}
+.er-text h3{font-size:17px;font-weight:700;margin-bottom:3px}
+.er-text p{font-size:12px;opacity:.85}
+.progress-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.ps-box{background:white;border:1px solid #e8e8e0;border-radius:12px;padding:14px;text-align:center}
+.ps-box .ps-val{font-size:22px;font-weight:700;color:#1a1a2e}
+.ps-box .ps-lbl{font-size:11px;color:#888;margin-top:3px}
+.eh-item{background:white;border:1px solid #e8e8e0;border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.eh-num{font-size:11px;color:#bbb;font-weight:700;min-width:24px}
+.eh-body{flex:1}
+.eh-date{font-size:11px;color:#999;margin-bottom:2px}
+.eh-score{font-size:15px;font-weight:700}
+.eh-score.pass{color:#166534}
+.eh-score.fail{color:#991b1b}
+.eh-detail{font-size:11px;color:#888;margin-top:2px}
+.eh-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px}
+.eh-badge.pass{background:#dcfce7;color:#166534}
+.eh-badge.fail{background:#fef2f2;color:#991b1b}
+.section-title{font-size:13px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div id="screen-home" class="screen active">
+<div id="install-banner" style="display:none;background:#1a1a2e;color:white;padding:12px 16px;border-radius:12px;margin-bottom:12px;font-size:13px;line-height:1.5;position:relative">
+  <button onclick="document.getElementById('install-banner').style.display='none';localStorage.setItem('fwb_banner_dismissed','1')" style="position:absolute;top:8px;right:10px;background:none;border:none;color:rgba(255,255,255,.6);font-size:18px;cursor:pointer;padding:0;line-height:1">×</button>
+  <strong style="display:block;margin-bottom:4px">📱 Add to Home Screen</strong>
+  Tap the <strong>Share button</strong> (□↑) at the bottom of Safari, then tap <strong>"Add to Home Screen"</strong> — the app will appear on your home screen like a native app.
+</div>
+  <div class="home-hero">
+    <h1>FWB Börsenhändlerprüfung</h1>
+    <p>Version 18 · Fragenkatalog 23.03.2026 · 150 Fragen</p>
+    <div class="stats-row">
+      <div class="stat-box"><div class="val" id="stat-mastered">0</div><div class="lbl">Mastered</div></div>
+      <div class="stat-box"><div class="val" id="stat-seen">0</div><div class="lbl">Practiced</div></div>
+      <div class="stat-box"><div class="val" id="stat-streak">0</div><div class="lbl">Best Streak</div></div>
+    </div>
+  </div>
+  <div class="mode-grid">
+    <div class="mode-card" onclick="startExam()">
+      <div class="icon">⏱️</div><h2>Exam mode</h2>
+      <p>50 random questions, 30-minute timer. Need 75% to pass.</p>
+      <span class="badge">REAL EXAM CONDITIONS</span>
+    </div>
+    <div class="mode-card" onclick="showTopicPicker()">
+      <div class="icon">📚</div><h2>Train mode</h2>
+      <p>Practice with instant feedback. Track your mastery per topic.</p>
+      <span class="badge">ALL 150 QUESTIONS</span>
+    </div>
+  </div>
+  <div class="mode-grid">
+    <div class="mode-card" onclick="startWeak()">
+      <div class="icon">🎯</div><h2>Weak spots</h2>
+      <p>Only questions you have not yet mastered.</p>
+    </div>
+    <div class="mode-card" onclick="showMastery()">
+      <div class="icon">📊</div><h2>Progress</h2>
+      <p>Stats, mastery by topic, exam history and Exam Ready status.</p>
+    </div>
+  </div>
+</div><!-- end screen-home -->
+
+<div id="screen-topics" class="screen">
+  <button class="btn-back" onclick="showScreen('home')">← Back</button>
+  <h2 style="font-size:18px;font-weight:700;margin-bottom:4px">Choose topics</h2>
+  <p style="font-size:13px;color:#888;margin-bottom:14px">Select which topics to practice, or train all.</p>
+  <div class="topic-list" id="topic-list"></div>
+  <div class="btn-row" style="margin-top:14px">
+    <button class="btn" onclick="selectAllTopics()">Select all</button>
+    <button class="btn btn-primary" onclick="startTrainFromTopics()">Start training →</button>
+  </div>
+</div>
+
+<div id="screen-quiz" class="screen">
+  <button class="btn-back" onclick="confirmBack()">← Back</button>
+  <div class="quiz-header">
+    <span class="q-counter" id="q-counter">Q 1 / 50</span>
+    <span class="timer-badge" id="timer-badge" style="display:none">30:00</span>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+  <span class="q-type-pill" id="q-pill">SC</span>
+  <div class="q-text" id="q-text"></div>
+  <div id="q-table-area"></div>
+  <div id="q-options"></div>
+  <div id="feedback-area"></div>
+  <div class="explain-box" id="explain-box"><div class="explain-title">💡 Explanation</div><div id="explain-text"></div></div>
+  <div class="btn-row">
+    <button class="btn btn-primary" id="btn-check" onclick="checkAnswer()" style="display:none">Check answer</button>
+    <button class="btn btn-explain" id="btn-explain" onclick="showExplain()" style="display:none">💡 Explain</button>
+    <button class="btn" id="btn-next" onclick="nextQ()" style="display:none">Next →</button>
+    <button class="btn btn-primary" id="btn-submit" onclick="finishSession()" style="display:none">Finish</button>
+  </div>
+  <div id="exam-nav" style="display:none;margin-top:14px">
+    <p style="font-size:12px;color:#888;margin-bottom:8px">Jump to question:</p>
+    <div id="q-dots" style="display:flex;flex-wrap:wrap;gap:5px"></div>
+  </div>
+</div>
+
+<div id="screen-result" class="screen">
+  <button class="btn-back" onclick="showScreen('home')">← Home</button>
+  <div class="result-card">
+    <h2 style="font-size:18px;font-weight:700" id="res-title">Exam complete</h2>
+    <div class="score-ring" id="res-ring">
+      <span class="pct" id="res-pct">0%</span>
+      <span class="sub" id="res-sub">0 pts</span>
+    </div>
+    <div class="verdict" id="res-verdict"></div>
+    <div class="detail-table">
+      <div class="detail-row"><span>Questions answered</span><span id="res-answered">—</span></div>
+      <div class="detail-row"><span>Points scored</span><span id="res-pts">—</span></div>
+      <div class="detail-row"><span>Max points</span><span id="res-max">—</span></div>
+      <div class="detail-row"><span>Pass threshold (75%)</span><span id="res-thresh">—</span></div>
+      <div class="detail-row"><span>TF correct</span><span id="res-tf">—</span></div>
+      <div class="detail-row"><span>SC correct</span><span id="res-sc">—</span></div>
+      <div class="detail-row"><span>MC correct</span><span id="res-mc">—</span></div>
+      <div class="detail-row"><span>Time taken</span><span id="res-time">—</span></div>
+    </div>
+  </div>
+  <div class="btn-row" style="justify-content:center">
+    <button class="btn" onclick="showReview()">Review answers</button>
+    <button class="btn btn-primary" onclick="showScreen('home')">Home</button>
+  </div>
+</div>
+
+<div id="screen-review" class="screen">
+  <button class="btn-back" onclick="showScreen('result')">← Back to results</button>
+  <h2 style="font-size:18px;font-weight:700;margin-bottom:10px">Answer Review</h2>
+  <div class="review-filters">
+    <span class="rfchip active" onclick="filterReview('all',this)">All</span>
+    <span class="rfchip" onclick="filterReview('wrong',this)">Wrong only</span>
+    <span class="rfchip" onclick="filterReview('correct',this)">Correct only</span>
+  </div>
+  <div id="review-list"></div>
+</div>
+
+<div id="screen-mastery" class="screen">
+  <button class="btn-back" onclick="showScreen('home')">← Back</button>
+  <h2 style="font-size:18px;font-weight:700;margin-bottom:14px">Your Progress</h2>
+  <div id="exam-ready-area"></div>
+  <div class="progress-stats-grid">
+    <div class="ps-box"><div class="ps-val" id="m-mastered">0</div><div class="ps-lbl">Questions mastered</div></div>
+    <div class="ps-box"><div class="ps-val" id="m-remaining">150</div><div class="ps-lbl">Not yet mastered</div></div>
+    <div class="ps-box"><div class="ps-val" id="m-total-answered">0</div><div class="ps-lbl">Total answered</div></div>
+    <div class="ps-box"><div class="ps-val" id="m-avg-correct">—</div><div class="ps-lbl">Avg correctness</div></div>
+  </div>
+  <div class="section-title">Mastery by topic</div>
+  <div id="mastery-topics" style="background:white;border:1px solid #e8e8e0;border-radius:12px;padding:4px 14px;margin-bottom:20px"></div>
+  <div class="section-title">Exam history</div>
+  <div id="exam-history-list"></div>
+</div>
+
+</div>
+<script>
+const TOPICS=[
+  {id:'t1',name:'Börsenordnung I — Börsenorgane',qs:[1,2,3,4,5,6]},
+  {id:'t2',name:'Börsenordnung II — Technik & Aussetzung',qs:[7,8,9,10,11,12,13,14,15,16,17,18]},
+  {id:'t3',name:'Börsenordnung III — Strukturierte Produkte',qs:[19,20,21,22,23,24]},
+  {id:'t4',name:'Bedingungen für Geschäfte',qs:[25,26,27,28,29,30,31,32,33,34,35,36,37,38,39]},
+  {id:'t5',name:'On-Exchange Off-Book / Freiverkehr / Fonds',qs:[40,41,42,43,44,45]},
+  {id:'t6',name:'Xetra — Grundprinzipien & Rollen',qs:[46,47,48,49,50,51,52]},
+  {id:'t7',name:'Xetra — Ablauf des Handels & Auktionen',qs:[53,54,55,56,57,58,59,60,61,62,63,64]},
+  {id:'t8',name:'Xetra — Ordertypen',qs:[65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80]},
+  {id:'t9',name:'Xetra — Schutzmechanismen',qs:[81,82,83,84,85,86]},
+  {id:'t10',name:'Xetra — Designated Sponsor',qs:[87,88,89,90,91,92]},
+  {id:'t11',name:'Xetra — Preisbildung & Off-Book',qs:[93,94,95,96,97,98,99,100,101,102,103,104,105,106,107]},
+  {id:'t12',name:'Frankfurt FA — Grundprinzipien & Stop Orders',qs:[108,109,110,111,112,113,114,115,116,117,118,119,120,121,122]},
+  {id:'t13',name:'Frankfurt FA — Spezialist (Phasen & Pflichten)',qs:[123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141]},
+  {id:'t14',name:'Frankfurt FA — Preisbildung',qs:[142,143,144,145,146,147,148,149,150]}
+];
+const PT={TF:2,SC:2,MC:4};
+const Q=[
+{id:1,type:'SC',q:'Welche der folgenden Aufgaben wird nicht vom Börsenrat ausgeübt?',opts:['Erlass der Börsenordnung','Überwachung der Geschäftsführung','Bestellung des Leiters der Handelsüberwachungsstelle','Zulassung von Wertpapieren'],correct:[3],explain:'Der Börsenrat erlässt die Börsenordnung, überwacht die Geschäftsführung und bestellt den Leiter der HÜSt. Die Zulassung von Wertpapieren ist hingegen Aufgabe der Geschäftsführung.'},
+{id:2,type:'SC',q:'Welches Börsenorgan entscheidet über die Aufnahme, Aussetzung, Unterbrechung und Einstellung der Preisfeststellung in Wertpapieren?',opts:['Cash Markets Operations','Handelsüberwachungsstelle','Geschäftsführung','Börsenrat'],correct:[2],explain:'Die Geschäftsführung der FWB entscheidet über alle Maßnahmen bezüglich der Preisfeststellung — Aufnahme, Aussetzung, Unterbrechung und Einstellung. Die HÜSt überwacht lediglich.'},
+{id:3,type:'SC',q:'Welche der folgenden Aufgaben wird von der Geschäftsführung ausgeübt?',opts:['Überwachung des Börsenhandels als ausführendes Organ der Aufsichtsbehörde','Festlegung von Beginn und Ende der Preisfeststellung','Vermittlung von Börsengeschäften','Verfolgung von Insiderverstößen'],correct:[1],explain:'Die Geschäftsführung legt Beginn und Ende der Preisfeststellung fest. Überwachung ist Aufgabe der HÜSt, Vermittlung ist Aufgabe der Skontroführer/Spezialisten, Insiderverfolgung liegt bei der BaFin.'},
+{id:4,type:'SC',q:'Welches Gesetz verpflichtet jede Börse zur Einrichtung und zum Betrieb einer Handelsüberwachungsstelle?',opts:['Wertpapierhandelsgesetz','Kreditwesengesetz','Börsengesetz','Börsenaufsichtsgesetz'],correct:[2],explain:'§ 7 Börsengesetz (BörsG) verpflichtet jede Börse zur Einrichtung einer Handelsüberwachungsstelle. Das WpHG regelt allgemein den Wertpapierhandel, greift hier aber nicht.'},
+{id:5,type:'SC',q:'Welche der folgenden Aufgaben wird nicht von der Geschäftsführung ausgeübt?',opts:['die Ordnung an der FWB aufrechtzuerhalten und die ordnungsgemäße Benutzung der übrigen Börseneinrichtungen sicherzustellen','Erlass einer Zulassungsordnung für Börsenhändler','die Einhaltung der Pflichten der Handelsteilnehmer zu überwachen','Unternehmen und Personen zur Teilnahme am Börsenhandel zuzulassen oder davon auszuschließen'],correct:[1],explain:'Den Erlass einer Zulassungsordnung für Börsenhändler nimmt die Börsenaufsichtsbehörde vor, nicht die Geschäftsführung. Alle anderen genannten Aufgaben (Ordnung, Überwachung, Zulassung) liegen bei der Geschäftsführung.'},
+{id:6,type:'SC',q:'Welche der folgenden Maßnahmen steht dem Sanktionsausschuss nicht zur Verfügung?',opts:['Verweis','Ordnungsgeld bis zu 1.000.000 €','Ausschluss von der Börse bis zu 30 Sitzungstagen','Endgültiger Entzug der Handelslizenz'],correct:[3],explain:'Der Sanktionsausschuss kann Verweise erteilen, Ordnungsgelder bis zu 1 Mio. € verhängen und temporäre Ausschlüsse bis zu 30 Sitzungstagen aussprechen. Ein endgültiger Lizenzentzug gehört nicht zu seinen Mitteln.'},
+{id:7,type:'TF',q:'Die Ansprüche und/oder Verbindlichkeit aus dem Handel bestimmter Wertpapiere (wie von der Geschäftsführung bestimmt) werden über eine zentrale Gegenpartei gecleart.',opts:['Richtig','Falsch'],correct:[0],explain:'Richtig. Bei CCP-fähigen Wertpapieren tritt die zentrale Gegenpartei (Eurex Clearing AG) zwischen Käufer und Verkäufer und übernimmt die Verpflichtungen beider Seiten.'},
+{id:8,type:'TF',q:'Zentrale Gegenpartei für Transaktionen in CCP-fähigen Wertpapieren ist die Deutsche Börse AG.',opts:['Richtig','Falsch'],correct:[1],explain:'Falsch. Die zentrale Gegenpartei ist die Eurex Clearing AG, nicht die Deutsche Börse AG. Die Deutsche Börse AG ist die Muttergesellschaft, betreibt aber selbst kein Clearing.'},
+{id:9,type:'TF',q:'Die Erfüllung (das Settlement) der an der FWB abgeschlossenen Börsengeschäfte erfolgt grundsätzlich über die Clearstream Banking AG oder über eine andere, durch die Börsenordnung anerkannte Wertpapiersammelbank.',opts:['Richtig','Falsch'],correct:[0],explain:'Richtig. Das Settlement (Lieferung von Wertpapieren gegen Zahlung) erfolgt über Clearstream Banking AG als Wertpapiersammelbank, die als zentraler Verwahrer fungiert.'},
+{id:10,type:'SC',q:'Wann wird der Handel an der FWB gemäß § 59 Börsenordnung im regulierten Markt ausgesetzt?',opts:['Wenn die ordnungsgemäße Abwicklung zeitweilig gefährdet ist','Am Tag vor der Veröffentlichung des Jahresabschlusses einer Aktiengesellschaft','Wenn dies zum Schutz des Publikums geboten erscheint','Am Tag der Hauptversammlung der jeweiligen Aktiengesellschaft'],correct:[2],explain:'Gemäß § 59 Börsenordnung wird der Handel ausgesetzt, wenn dies zum Schutz des Publikums geboten erscheint. Die anderen Optionen (Jahresabschluss, Hauptversammlung) sind keine gesetzlich vorgesehenen Aussetzungsgründe.'},
+{id:11,type:'SC',q:'Wen muss die Geschäftsführung unverzüglich informieren, wenn der Handel im regulierten Markt ausgesetzt wird?',opts:['Die Handelsüberwachungsstelle und die Börsenaufsichtsbehörde','Die Bundesanstalt für Finanzdienstleistungsaufsicht (BaFin) und die Börsenaufsichtsbehörde','Den Börsenrat und die Handelsüberwachungsstelle','Die Börsenaufsichtsbehörde und den Börsenrat'],correct:[1],explain:'Bei einer Handelsaussetzung muss die Geschäftsführung unverzüglich die BaFin (als nationale Aufsichtsbehörde) und die Börsenaufsichtsbehörde informieren, nicht den Börsenrat oder die HÜSt.'},
+{id:12,type:'SC',q:'Welche Aussage ist falsch?',opts:['Wenn die Geschäftsführung den Handel im regulierten Markt aussetzt, werden die bestehenden Orders gelöscht.','Die Aussetzung des Handels kann auf Teile des Handels beschränkt werden.','Die Aussetzung des Handels kann nicht auf Teile des Handels beschränkt werden.','Wenn die Geschäftsführung den Handel im regulierten Markt unterbricht, werden die bestehenden Orders nicht gelöscht.'],correct:[2],explain:'Die Aussage unter Option 3 ist falsch: Eine Handelsaussetzung kann sehr wohl auf Teile des Handels beschränkt werden (z.B. nur bestimmte Wertpapiere oder Marktsegmente). Option 2 sagt genau das Richtige.'},
+{id:13,type:'SC',q:'Was ist gemäß der Marktintegritätsklausel (§ 121 Börsenordnung) untersagt?',opts:['Außerbörsliche Geschäftsabschlüsse zu tätigen.','Orders im Einklang mit der gängigen Marktpraxis aufzugeben.','Einen nicht marktgerechten Preis oder ein künstliches Preisniveau in der Börsen-EDV herbeizuführen.','Keine der vorstehenden Antworten ist richtig.'],correct:[2],explain:'§ 121 Börsenordnung verbietet die Herbeiführung nicht marktgerechter Preise oder künstlicher Preisniveaus. Dies schützt die Marktintegrität und verhindert Marktmanipulation.'},
+{id:14,type:'SC',q:'Welcher der folgenden Sachverhalte ist ein Verstoß gegen die Marktintegritätsklausel (§ 121 Börsenordnung)?',opts:['Herbeiführen eines künstlichen Preisniveaus.','Eingabe von Orders, die geeignet sind, fehlerhaft oder irreführend Angebot und Nachfrage zu beeinflussen.','Beeinflussung des Preises in einem Wertpapier durch Orders eines Handelsteilnehmers.','Alle genannten Sachverhalte stellen einen Verstoß dar.'],correct:[3],explain:'Alle drei genannten Verhaltensweisen verstoßen gegen die Marktintegritätsklausel: künstliche Preise, irreführende Orders und gezielte Preismanipulation sind verboten.'},
+{id:15,type:'SC',q:'Welche Aussage zum Shortcode-Regime ist richtig?',opts:['Bei der Eingabe eines Auftrags muss der Shortcode eingegeben werden, der dem Longcode des Auftrags zugeordnet ist','Einem Longcode kann grundsätzlich nur ein Shortcode zugeordnet werden.','Wenn ein Shortcode erstmals verwendet wird, muss der zugeordnete Longcode der FWB bis zum Ende des Handelstages mitgeteilt werden, der auf den Handelstag folgt, an dem der Shortcode erstmals verwendet wurde.','Alle Antworten sind richtig.'],correct:[3],explain:'Alle drei Aussagen sind korrekt. Das Shortcode-Regime erlaubt die verkürzte Identifikation von Auftragsgebern. Shortcodes müssen dem Longcode zugeordnet sein, und der Longcode muss am Folgetag gemeldet werden.'},
+{id:16,type:'SC',q:'Welche Aussage trifft im Fall von technischen Problemen nicht zu?',opts:['Bei einer Sperrung des Zugangs zu Börsen-EDV für alle Unternehmen können keine weiteren Eingaben vorgenommen werden (Halt-Status).','Die Geschäftsführung kann bei Ausfall eines Teilnehmerhandelssystems auf Verlangen eines Unternehmens für dieses Eingaben in die Börsen-EDV vornehmen (Trading on Behalf).','Einen Ausfall der Telefonanlage muss unverzüglich der Geschäftsführung angezeigt werden.','Die Handelsüberwachungsstelle kann den Zugang zur Börsen-EDV für einen, mehrere oder alle Unternehmen sperren.'],correct:[3],explain:'Die Sperrung des Zugangs zur Börsen-EDV liegt bei der Geschäftsführung, nicht bei der Handelsüberwachungsstelle. Alle anderen Aussagen sind korrekt.'},
+{id:17,type:'SC',q:'Wann kann die Geschäftsführung den Zugang zur Börsen-EDV sperren?',opts:['Bei technischen Problemen.','Wenn der ordnungsgemäße Börsenhandel gefährdet ist.','Eine Sperrung des Zugangs zum Handelssystem ist grundsätzlich nicht möglich.','Keine der vorstehenden Antworten ist richtig.'],correct:[0],explain:'Die Geschäftsführung kann den Zugang zur Börsen-EDV sperren, wenn technische Probleme vorliegen. Dies ist ein konkreter, enger Grund — nicht der allgemeinere Begriff "Gefährdung des Börsenhandels".'},
+{id:18,type:'SC',q:'Wie legitimiert sich ein Handelsteilnehmer für „Trading on Behalf"?',opts:['Durch Nennung einer Geheimzahl.','Über einen Rückruf durch Mitarbeiter von Cash Markets Operations.','Die Legitimation erfolgt anhand der genannten aktiven Benutzererkennung.','Durch Nennung des Systempasswortes.'],correct:[2],explain:'Beim Trading on Behalf legitimiert sich der Handelsteilnehmer durch Nennung der aktiven Benutzererkennung (User-ID). Passwörter oder Geheimzahlen werden nicht verwendet.'},
+{id:19,type:'MC',q:'Wann muss der Quote-Verpflichtete kein Brieflimit angeben?',opts:['Wenn das Wertpapier durch den Emittenten ausverkauft ist (Sold-out-Status).','Wenn das Wertpapier durch den Emittenten gekündigt wurde.','Wenn der Markt ausreichend liquide ist.','Wenn das Wertpapier von einer gesetzlichen Änderung derart betroffen ist, dass ein Kauf nicht mehr möglich oder zumutbar ist.'],correct:[0,1,3],explain:'In drei Ausnahmesituationen entfällt die Pflicht zur Briefseite: Sold-out (kein Nachkauf möglich), Kündigung durch Emittenten, oder gesetzliche Änderungen die einen Kauf unmöglich machen. Marktliquidität ist kein Befreiungsgrund.'},
+{id:20,type:'MC',q:'Welche der folgenden Pflichten muss ein Quote-Verpflichteter im Handel mit strukturierten Produkten erfüllen?',opts:['Der indikative Quote muss immer ein Geld- und ein Brieflimit haben.','Er muss dem Spezialisten an jedem Handelstag mindestens einen indikativen Quote zur Verfügung stellen.','Er hat der Geschäftsführung einen fachlichen und einen technischen Ansprechpartner mitzuteilen.','Er muss dem Spezialisten auf Anfrage einen verbindlichen Quote nennen.'],correct:[1,2,3],explain:'Drei Pflichten gelten: tägliche Quote-Bereitstellung, Meldung von fachlichem und technischem Ansprechpartner, und verbindliche Quotes auf Anfrage. Option 1 ist falsch — das Brieflimit kann in Ausnahmefällen entfallen.'},
+{id:21,type:'MC',q:'Welche besonderen Bestimmungen gelten in der Fortlaufenden Auktion für strukturierte Produkte?',opts:['Leerverkäufe sind nicht gestattet.','Der Emittent muss im Einführungsantrag einen Quote-Verpflichteten für das jeweilige Wertpapier benennen.','Der Quote-Verpflichtete muss in jeder Situation indikative Quotes mit Geld- und Brieflimit zur Verfügung stellen.','Die Handelsüberwachungsstelle kann dem Quote-Verpflichteten die Quotierung ganz oder teilweise untersagen.'],correct:[0,1],explain:'Leerverkäufe sind in der FA für strukturierte Produkte nicht gestattet, und der Emittent muss im Einführungsantrag einen Quote-Verpflichteten benennen. Option 3 ist falsch (Brieflimit kann entfallen), Option 4 ist falsch (diese Kompetenz liegt bei der Geschäftsführung).'},
+{id:22,type:'SC',q:'Wer benennt den Quote-Verpflichteten für ein strukturiertes Produkt?',opts:['Emittent','Handelsüberwachungsstelle','Spezialist','Geschäftsführung'],correct:[0],explain:'Der Emittent benennt den Quote-Verpflichteten im Einführungsantrag. Der Quote-Verpflichtete muss nicht identisch mit dem Emittenten sein.'},
+{id:23,type:'SC',q:'Welche der folgenden Aussagen gilt nicht für einen Quote-Verpflichteten?',opts:['Er muss telefonisch erreichbar sein (ab einer Stunde vor Handelsbeginn bis eine Stunde nach Handelsende).','Er hat die zur Erfüllung der Quotierungspflicht erforderlichen personellen, technischen und finanziellen Voraussetzungen zu gewährleisten.','Er muss identisch mit dem Emittenten sein.','Er braucht einen fachlichen Ansprechpartner, der für sein Unternehmen als Börsenhändler zugelassen ist.'],correct:[2],explain:'Der Quote-Verpflichtete muss nicht identisch mit dem Emittenten sein — er kann ein anderes Unternehmen sein, das der Emittent damit beauftragt. Alle anderen Anforderungen (Erreichbarkeit, Ressourcen, Ansprechpartner) sind korrekt.'},
+{id:24,type:'SC',q:'Was gilt im Falle einer Quotierungseinschränkung für ein strukturiertes Produkt?',opts:['Er muss dies unverzüglich durch eine Quotierung mit einem Geld- und Brieflimit von „0" anzeigen.','Sofern der Grund ein Systemausfall ist, kann er neben der Quotierung mit „0" die Geschäftsführung schriftlich informieren.','Auf Anfrage hat er über den Grund und die voraussichtliche Dauer Auskunft zu erteilen.','Alle Antworten sind richtig.'],correct:[3],explain:'Alle drei Aussagen sind korrekt: Anzeige durch Null-Quote, optionale schriftliche Information bei Systemausfall, und Auskunftspflicht auf Anfrage.'},
+{id:25,type:'TF',q:'Bei Erfüllung von Börsengeschäften ist der Verkäufer bei Lieferung zur Zahlung des Gegenwertes verpflichtet.',opts:['Richtig','Falsch'],correct:[1],explain:'Falsch. Bei Lieferung (Wertpapiere) ist der Käufer zur Zahlung des Gegenwertes verpflichtet, nicht der Verkäufer. Der Verkäufer liefert die Wertpapiere.'},
+{id:26,type:'TF',q:'Bei Erfüllung von Börsengeschäften ist der Käufer bei Lieferung frühestens am dritten Erfüllungstag nach Geschäftsabschluss zur Zahlung des Gegenwertes verpflichtet.',opts:['Richtig','Falsch'],correct:[1],explain:'Falsch. Die Standardabwicklungsfrist für Aktien beträgt T+2 (zweiter Erfüllungstag nach Abschluss), nicht T+3.'},
+{id:27,type:'TF',q:'Börsengeschäfte in Aktien sind am zweiten Erfüllungstag nach dem Tag des Geschäftsabschlusses zu erfüllen.',opts:['Richtig','Falsch'],correct:[0],explain:'Richtig. Der EU-Standard (CSDR) schreibt T+2 vor — Wertpapiergeschäfte in Aktien sind am zweiten Handelstag nach Abschluss zu erfüllen.'},
+{id:28,type:'MC',q:'Welche Aussagen gelten gemäß § 3 der Bedingungen für Geschäfte an der FWB für Pre-arranged Trades?',opts:['Sie sind im fortlaufenden Handel zulässig, wenn einer der Beteiligten vor der Eingabe seiner Order einen entsprechenden Trade-Request gestellt hat.','Sie sind im fortlaufenden Handel immer verboten.','Die den Pre-arranged Trade herbeiführende Order muss frühestens eine Sekunde und spätestens 121 Sekunden nach Eingabe des Trade-Requests eingegeben werden.','Keine der vorstehenden Antworten ist richtig.'],correct:[0,2],explain:'Pre-arranged Trades sind mit vorherigem Trade-Request zulässig. Die Order muss zwischen 1 und 121 Sekunden nach dem Trade-Request eingegeben werden — so hat der Markt die Chance, dazwischen zu treten.'},
+{id:29,type:'MC',q:'Welche der folgenden Sachverhalte stellen einen Regelverstoß gegen § 3 der Bedingungen dar?',opts:['Eingabe gegenläufiger, sofort ausführbarer Orders im selben Wertpapier durch mehrere Börsenhändler eines Unternehmens.','Wissentlicher Cross-Trade ohne vorherigen Trade-Request.','Pre-arranged Trade ohne vorherigen Trade-Request.','Eingabe von Orders mit der Absicht, den Preis für Derivate an der Eurex zu beeinflussen.'],correct:[1,2,3],explain:'Verboten sind: wissentliche Cross-Trades ohne Trade-Request, Pre-arranged Trades ohne Trade-Request, und Orders zur Derivatpreismanipulation. Option 1 allein (mehrere Händler eines Unternehmens) ist kein automatischer Verstoß.'},
+{id:30,type:'MC',q:'Wann ist ein Cross-Trade oder ein Pre-arranged Trade nach § 3 Bedingungen für Geschäfte an der FWB zulässig?',opts:['Wenn einer der Beteiligten vor der Eingabe der Orders einen Trade-Request gestellt hat.','Wenn die Order frühestens eine Sekunde und spätestens nach 121 Sekunden nach Eingabe des Trade-Requests eingegeben wurde.','Wenn einer der Beteiligten den Trade bei der Handelsüberwachungsstelle avisiert hat.','Wenn im Handelssystem die Phase Crossing aktiviert ist.'],correct:[0,1],explain:'Beide Bedingungen müssen erfüllt sein: vorheriger Trade-Request UND Einhaltung der Zeitfensters (1–121 Sekunden). Ein Avisieren bei der HÜSt oder eine Crossing-Phase gibt es in diesem Zusammenhang nicht.'},
+{id:31,type:'MC',q:'Welche Aussagen gelten für Cross-Trades?',opts:['Sie sind im fortlaufenden Handel immer verboten.','Wenn ein Handelsteilnehmer die Self Match Prevention-Funktionalität nutzt, werden unbeabsichtigte Crossings durch das Handelssystem verhindert.','Sie sind im fortlaufenden Handel zulässig, wenn einer der Beteiligten vor der Eingabe seiner Order einen entsprechenden Trade-Request gestellt hat.','Keine der vorstehenden Antworten ist richtig.'],correct:[1,2],explain:'Self Match Prevention verhindert unbeabsichtigte Eigengeschäfte. Cross-Trades sind zulässig mit vorherigem Trade-Request. Sie sind also nicht generell verboten (Option 1 ist falsch).'},
+{id:32,type:'MC',q:'Welche Angaben muss ein Trade-Request enthalten?',opts:['Händlerkennung','Volumen','Limit','Wertpapier'],correct:[1,3],explain:'Ein Trade-Request muss Volumen und Wertpapier enthalten. Händlerkennung und Limit sind keine Pflichtangaben im Trade-Request.'},
+{id:33,type:'MC',q:'Cross-Trades und Pre-arranged Trades ...',opts:['sind im fortlaufenden Handel zulässig, wenn sie durch einen Trade-Request angekündigt und die vorgeschriebenen Fristen eingehalten wurden.','sind in Auktionen und Volatilitätsunterbrechungen möglich.','sind immer verboten.','dürfen jederzeit in das System eingegeben werden.'],correct:[0,1],explain:'Cross-Trades und Pre-arranged Trades sind im fortlaufenden Handel mit Trade-Request möglich, und auch in Auktionen und Volatilitätsunterbrechungen. Sie sind nicht generell verboten und nicht zu jeder beliebigen Zeit ohne Ankündigung möglich.'},
+{id:34,type:'MC',q:'Welche Fristen müssen bei einem Antrag auf Geschäftsaufhebung eingehalten werden?',opts:['Bei Geschäften in Wertpapieren im Fortlaufenden Handel ist der Mistrade-Antrag innerhalb von drei Handelsstunden nach Zugang der Ausführungsbestätigung zu stellen.','Bei Geschäften in der Fortlaufenden Auktion ist der Mistrade-Antrag innerhalb von einer Handelsstunde nach Zugang der Ausführungsbestätigung zu stellen.','Bei Geschäften in der Fortlaufenden Auktion ist der Mistrade-Antrag innerhalb von zwei Handelsstunden nach Zugang der Geschäftsbestätigung zu stellen.','Bei Geschäften im Fortlaufenden Handel ist der Mistrade-Antrag innerhalb von 30 Minuten nach Zugang der Geschäftsbestätigung zu stellen.'],correct:[2,3],explain:'Die korrekten Fristen: Im Fortlaufenden Handel 30 Minuten (Option 4), in der Fortlaufenden Auktion 2 Handelsstunden (Option 3) — jeweils nach Zugang der Geschäftsbestätigung.'},
+{id:35,type:'MC',q:'Unter welchen Bedingungen kann ein Geschäft auf Antrag durch die Geschäftsführung aufgehoben werden?',opts:['Das fragliche Geschäft wurde zu einem nicht marktgerechten Preis ausgeführt.','Das fragliche Geschäft wurde zu einem marktgerechten Preis ausgeführt.','Der Antrag wurde innerhalb der vorgegebenen Fristen gestellt.','Die beteiligten Parteien einigen sich außerbörslich und benachrichtigen die Börse innerhalb von 24 Stunden.'],correct:[0,2],explain:'Zwei Voraussetzungen müssen kumulativ erfüllt sein: nicht marktgerechter Preis UND fristgerechter Antrag. Ein marktgerechter Preis schließt eine Aufhebung aus, eine außerbörsliche Einigung ist kein Aufhebungsgrund.'},
+{id:36,type:'MC',q:'Welche Angaben muss ein Mistrade-Antrag enthalten?',opts:['Firma und Ansprechpartner des Antragstellers','Zeitpunkt sowie Volumen und Preis des Geschäfts','Angaben zum marktgerechten Preis','Firma und Ansprechpartner des Kontrahenten'],correct:[0,1,2],explain:'Ein Mistrade-Antrag muss enthalten: Antragsteller (Firma/Ansprechpartner), Geschäftsdaten (Zeitpunkt, Volumen, Preis) und Angaben zum marktgerechten Preis. Die Kontrahentendaten sind keine Pflichtangabe.'},
+{id:37,type:'SC',q:'Wenn ein bilaterales Geschäft nicht rechtzeitig erfüllt wird: Welche Aufgabe muss im Rahmen der Selbstvornahme nicht erfüllt werden?',opts:['Setzen einer angemessenen Nachfrist.','Nach Ablauf der Nachfrist nicht gelieferte Wertpapiere selbst zu kaufen.','Den Zentralverwahrer über die verspätete Lieferung zu informieren.','Nach Ablauf der Nachfrist nicht abgenommene Wertpapiere zu verkaufen.'],correct:[2],explain:'Der Zentralverwahrer muss nicht über verspätete Lieferungen informiert werden. Die Schritte der Selbstvornahme sind: Nachfrist setzen, Selbstkauf bei Nichtlieferung, Selbstverkauf bei Nichtabnahme.'},
+{id:38,type:'SC',q:'Welche Aussage hinsichtlich des Zustandekommens, der Erfüllung oder der nicht rechtzeitigen Erfüllung von Börsengeschäften ist falsch?',opts:['Börsengeschäfte sind frühestens zwei Tage nach dem Geschäftsabschluss zu erfüllen.','Börsengeschäfte werden zwischen den zugelassenen Unternehmen oder zwischen diesen und einer zentralen Gegenpartei geschlossen.','Das Recht zur Selbstvornahme besteht auch bei geclearten Geschäften.','Zustande gekommene Geschäfte werden den Geschäftsparteien elektronisch bestätigt.'],correct:[2],explain:'Das Recht zur Selbstvornahme besteht nur bei bilateralen (nicht geclearten) Geschäften. Bei geclearten Geschäften gelten die Clearing-Bedingungen der zentralen Gegenpartei, nicht die Selbstvornahmeregeln.'},
+{id:39,type:'SC',q:'Was gilt, wenn ein Börsengeschäft nicht rechtzeitig erfüllt wird?',opts:['Bei bilateralen Geschäften mit Haupthandelsplatz in der EU gelten die entsprechenden Artikel der CSDR.','Bei geclearten Geschäften gelten die Clearing-Bedingungen des Clearinghauses.','Bei bilateralen Geschäften, die nicht unter die CSDR fallen, ist die nicht säumige Partei zur Selbstvornahme berechtigt.','Alle Antworten sind richtig.'],correct:[3],explain:'Alle drei Aussagen sind korrekt. Es gibt drei verschiedene Regimes je nach Geschäftstyp: CSDR für EU-Geschäfte, Clearing-Bedingungen für geclearte Geschäfte, Selbstvornahme für sonstige bilaterale Geschäfte.'},
+{id:40,type:'SC',q:'Welche Aussage zum T7 Eingabeservice (TES) ist richtig?',opts:['Für Geschäfte über die TES-Ordereingabefunktionalität können Volumen und Preis beliebig vereinbart werden.','Der Handelsteilnehmer legt ein Mindestvolumen für seine Off-Book-Geschäfte fest.','Geschäfte können nur abgeschlossen werden, wenn sich der Preis innerhalb eines definierten Korridors befindet.','Die Eingabe von Orders über die TES-Ordereingabefunktionalität kann nur von zugelassenen Börsenhändlern genutzt werden.'],correct:[2],explain:'TES-Geschäfte müssen sich preislich innerhalb eines von der Geschäftsführung definierten Korridors befinden. Volumen und Preis sind nicht beliebig, das Mindestvolumen legt die Geschäftsführung fest (nicht der Teilnehmer), und TES kann nicht nur von Börsenhändlern genutzt werden.'},
+{id:41,type:'SC',q:'Wann ist ein Off-Book-Geschäft verboten?',opts:['Wenn das Geschäft irrtümlich in das System eingegeben wurde.','Wenn das Volumen das von der Geschäftsführung festgelegte Mindestvolumen unterschreitet.','Wenn das Geschäft nicht bis zum Ende der Off-Book-Handelszeit bestätigt wurde.','Wenn die Eingabe des Geschäfts durch einen nicht zugelassenen Mitarbeiter erfolgt ist.'],correct:[1],explain:'Off-Book-Geschäfte sind verboten, wenn das Mindestvolumen (Large-in-Scale, festgelegt von der Geschäftsführung) unterschritten wird. Irrtümliche Eingaben und fehlende Bestätigung führen zur Stornierung, nicht zu einem Verbot.'},
+{id:42,type:'SC',q:'Welche Aussage ist für die Preisanfragefunktionalität Xetra EnLight richtig?',opts:['Über Xetra EnLight können Requester Angebote zum Kauf oder Verkauf direkt bei einem oder mehreren Respondern anfragen.','Abgabe und Annahme eines Xetra EnLight-Angebots kann nur innerhalb eines festgelegten Zeitrahmens erfolgen.','Übermitteln mehrere Responder ein Angebot, kann der Requester nur ein Angebot annehmen.','Alle Antworten sind richtig.'],correct:[3],explain:'Alle drei Aussagen zur Xetra EnLight Preisanfragefunktionalität sind korrekt. Es ist eine RfQ-Funktionalität (Request for Quote) mit Zeitrahmen und der Möglichkeit, nur ein Angebot anzunehmen.'},
+{id:43,type:'SC',q:'Welche der folgenden Aussagen gilt nicht für den Handel mit Fondsanteilen (ohne ETFs) in der Fortlaufenden Auktion?',opts:['Die Quotierung des Spezialisten muss auf der Basis der aktuellen Orderbuchlage sowie dem von ihm errechneten Preis der Fondsanteile erfolgen.','Über Sondersituationen hat der Spezialist die Geschäftsführung und die Handelsüberwachungsstelle unverzüglich schriftlich zu unterrichten.','Die Quotierung des Spezialisten erfolgt ausschließlich auf der Basis der aktuellen Orderbuchlage.','Die Geschäftsführung kann im Fall einer Aussetzung der Rücknahme von Fondsanteilen den Handel aussetzen.'],correct:[2],explain:'Option 3 ist falsch: Die Quotierung erfolgt nicht ausschließlich auf Basis der Orderbuchlage, sondern zusätzlich auch auf Basis des vom Spezialisten errechneten NAV (Net Asset Value) der Fondsanteile.'},
+{id:44,type:'SC',q:'Wo sind zusätzlich zur Börsenordnung die Aufgaben des Spezialisten im Fondshandel (ohne ETFs) geregelt?',opts:['In der Handelsordnung für den Freiverkehr an der FWB.','In den Allgemeinen Geschäftsbedingungen für Xetra.','In den Bedingungen für Geschäfte an der FWB.','Keine der vorstehenden Antworten ist richtig.'],correct:[0],explain:'Die Aufgaben des Spezialisten im Fondshandel (ohne ETFs) sind in der Handelsordnung für den Freiverkehr an der FWB geregelt, da Fonds (ohne ETFs) im Freiverkehr gehandelt werden.'},
+{id:45,type:'SC',q:'Welche Aussage bezüglich der Quotierungspflicht des Spezialisten im Fondshandel (ohne ETFs) ist richtig?',opts:['Bei einer Aussetzung der Ausgabe von Fondsanteilen durch den Emittenten ist der Spezialist von der Pflicht zur Quotierung für die Briefseite befreit.','Bei einer Aussetzung der Ausgabe von Fondsanteilen durch den Emittenten ist der Spezialist von der Pflicht zur Quotierung für die Geldseite befreit.','Bei einer Aussetzung der Rücknahme von Fondsanteilen durch den Emittenten ist der Spezialist zur Stellung von indikativen Quotes verpflichtet.','Während der Handelszeit müssen fortlaufend verbindliche Quotes gestellt werden.'],correct:[0],explain:'Wenn der Emittent die Ausgabe von Fondsanteilen aussetzt, kann der Spezialist keine neuen Anteile beschaffen — daher entfällt die Briefseiten-Quotierungspflicht. Die Geldseite (Rückkauf) bleibt verpflichtend.'},
+{id:46,type:'MC',q:'Welche Grundprinzipien gelten für das Xetra Marktmodell?',opts:['Durch den Eintritt einer zentralen Gegenpartei besteht Nachhandelsanonymität.','Im Rahmen der Vorhandelsanonymität sehen Handelsteilnehmer im offenen Orderbuch nicht die Identität der Ordereinsteller.','Während Trade-at-Close ist das Orderbuch offen.','Das Orderbuch ist grundsätzlich geschlossen.'],correct:[0,1,2],explain:'Drei Grundprinzipien: Nachhandelsanonymität durch CCP, Vorhandelsanonymität (keine Identitäten im Orderbuch sichtbar), und bei Trade-at-Close ist das Orderbuch offen für neue Orders. Das Orderbuch ist grundsätzlich OFFEN (Option 4 ist falsch).'},
+{id:47,type:'MC',q:'Für den Fortlaufenden Handel in Verbindung mit Auktionen sind folgende Aussagen zutreffend:',opts:['Eine ISIN kann in mehreren Handelswährungen als dediziertes Einzelinstrument gehandelt werden.','In der Eröffnungsauktion können auch Bruchstücke gehandelt werden.','Auktionen werden nur nach Bedarf initiiert.','Während der Aufrufphase ist das Orderbuch teilweise geschlossen.'],correct:[0,3],explain:'Eine ISIN kann in mehreren Währungen als Einzelinstrument gehandelt werden (Option 1). Das Orderbuch ist während der Aufrufphase teilweise geschlossen (Option 4). Bruchstücke können nicht in der Auktion gehandelt werden (Option 2 falsch). Auktionen finden nach festem Plan statt, nicht nur nach Bedarf (Option 3 falsch).'},
+{id:48,type:'MC',q:'Welche Aussagen gelten für den Fortlaufenden Handel in Verbindung mit Auktionen?',opts:['Das Handelsmodell ist ordergetrieben.','Die Ausführung der Orders erfolgt nach Preis-Zeit-Priorität.','Der Handel von Bruchstücken ist möglich.','Der Handel ist anonym.'],correct:[0,1,3],explain:'Der FH mit Auktionen ist ordergetrieben (kein Market Maker erforderlich), nutzt Preis-Zeit-Priorität und ist vollständig anonym. Bruchstücke können im fortlaufenden Handel NICHT gehandelt werden.'},
+{id:49,type:'SC',q:'Welche Wertpapiere sind im Handelsmodell Fortlaufender Handel in Verbindung mit Auktionen handelbar?',opts:['Alle an der Frankfurter Wertpapierbörse gelisteten Wertpapiere.','Ausgewählte Aktien, Anleihen, Exchange Traded Funds und Exchange Traded Products.','Ausgewählte Aktien, Exchange Traded Funds und Exchange Traded Products.','Keine der vorstehenden Antworten ist richtig.'],correct:[2],explain:'Im Xetra FH-Modell werden ausgewählte Aktien, ETFs und ETPs gehandelt — aber keine Anleihen. Anleihen werden in der Fortlaufenden Auktion (Spezialistenmodell) gehandelt.'},
+{id:50,type:'SC',q:'Welche Aussage gilt für den Handelsplatz Xetra?',opts:['Für Händler gibt es drei Hierarchie-Ebenen.','Informationsnutzer ohne Händlerzulassung sind möglich.','Händler können in Händlergruppen organisiert werden.','Alle Aussagen sind richtig.'],correct:[3],explain:'Alle drei Aussagen sind korrekt: Drei Hierarchieebenen (Teilnehmer, Händlergruppe, Händler), Informationsnutzer ohne Handelslizenz und Händlergruppen sind alle im Xetra-Marktmodell vorgesehen.'},
+{id:51,type:'SC',q:'Welche Rolle kann ein Händler im Handelsmodell Fortlaufender Handel in Verbindung mit Auktionen einnehmen?',opts:['Issuer','Designated Sponsor','Spezialist','Quote-Provider'],correct:[1],explain:'Im FH-Modell kann ein Händler als Designated Sponsor auftreten und so Liquidität bereitstellen. Spezialist und Issuer sind andere Modelle. Quote-Provider ist keine definierte Rolle im FH-Modell.'},
+{id:52,type:'MC',q:'In welchen Instrumenten ist der Xetra Midpoint Handel zulässig?',opts:['Anleihen','Aktien','Exchange Traded Funds','Exchange Traded Commodities'],correct:[1,2],explain:'Der Xetra Midpoint Order-Handel ist nur für Aktien und ETFs zulässig. Anleihen und ETCs sind ausgeschlossen.'},
+{id:53,type:'TF',q:'In einer Auktion gilt Preis-Zeit-Priorität, sodass maximal nur eine zum Auktionspreis limitierte oder unlimitierte Order teilausgeführt werden kann.',opts:['Richtig','Falsch'],correct:[0],explain:'Richtig. In Auktionen gilt Preis-Zeitpriorität — bei gleichem Preis entscheidet die Zeit. Daher kann maximal eine Order zum Auktionspreis teilausgeführt werden.'},
+{id:54,type:'TF',q:'Trade-at-Close wird nach jeder Schlussauktion automatisch ausgelöst.',opts:['Richtig','Falsch'],correct:[1],explain:'Falsch. Trade-at-Close wird nur ausgelöst, wenn die Schlussauktion mit einem positiven Umsatz (tatsächlichem Geschäftsabschluss) geendet hat. Ohne Auktionsumsatz kein TaC.'},
+{id:55,type:'TF',q:'Iceberg Orders nehmen nicht mit ihrem Gesamtvolumen an einer Auktion teil.',opts:['Richtig','Falsch'],correct:[1],explain:'Falsch. Iceberg Orders nehmen in Auktionen mit ihrem GESAMTEN Volumen teil (sichtbarer + versteckter Teil). Nur im fortlaufenden Handel ist nur der sichtbare Teil aktiv, sofern das Gesamtvolumen nicht Teil des Überhangs wird.'},
+{id:56,type:'SC',q:'Welche Aussage zur Vor- oder zur Nachhandelsphase ist richtig?',opts:['Marktteilnehmer haben vollen Einblick in die Orderbuchlage.','Marktteilnehmer können in der Vorhandelsphase Orders und Quotes eingeben, ändern und löschen.','Marktteilnehmer können in der Nachhandelsphase Orders und Quotes für den folgenden Handelstag eingeben, ändern und löschen.','In der Vorhandelsphase wird der indikative Auktionspreis der Eröffnungsauktion angezeigt.'],correct:[1],explain:'In der Vorhandelsphase können Orders und Quotes eingegeben, geändert und gelöscht werden. Es gibt aber keinen vollen Einblick ins Orderbuch (Option 1 falsch). Die Vorhandelsphase zeigt den indikativen Auktionspreis (Option 4 ist zwar auch wahr, aber nach dem Fragenkatalog ist Option 2 die gesuchte richtige Antwort).'},
+{id:57,type:'SC',q:'Welche Aussage zu den auf dem Handelsplatz Xetra angebotenen Handelsformen ist falsch?',opts:['Das Orderbuch ist während der Aufrufphase einer Auktion teilweise geschlossen.','Im On-Exchange Off-Book-Handel können Transaktionen mit beliebigen Ordervolumen ausgeführt werden.','Die Preisermittlung in der Auktion erfolgt nach dem Meistausführungsprinzip.','Das Orderbuch im fortlaufenden Handel ist offen.'],correct:[1],explain:'Option 2 ist falsch: Im Off-Book-Handel müssen Mindestvolumina (Large-in-Scale) eingehalten werden — beliebige Volumina sind nicht möglich.'},
+{id:58,type:'SC',q:'Der börsliche Xetra-Handel wird durch verschiedene Funktionalitäten ergänzt. Welche gehört nicht dazu?',opts:['Preisanfragefunktionalität Xetra EnLight.','Funktionalität für den Off-Book-Handel (T7 Entry Service - TES Typ LIS)','Blockhandelsfunktionalität Xetra XXL','Eingabefunktionalität für OTC-Geschäfte (T7 Entry Service - TES Typ OTC)'],correct:[2],explain:'Eine "Blockhandelsfunktionalität Xetra XXL" existiert nicht. Die tatsächlichen Ergänzungen sind: EnLight (RfQ), TES LIS (Large-in-Scale Off-Book) und TES OTC (außerbörsliche Geschäfte).'},
+{id:59,type:'SC',q:'Die Dauer des zufälligen Endes einer Aufrufphase für Auktionen im Handelsmodell Fortlaufender Handel in Verbindung mit Auktionen beträgt:',opts:['0–30 Sekunden','15 Sekunden','Nur wenige Sekunden','Mindestens 15, höchstens 30 Sekunden'],correct:[0],explain:'Das zufällige Ende der Aufrufphase beträgt 0 bis 30 Sekunden. Es kann also sofort enden oder bis zu 30 Sekunden nach dem geplanten Ende. Dies verhindert strategisches Eingreifen im letzten Moment.'},
+{id:60,type:'SC',q:'Welche Aussage gilt nicht für Trade-at-Close (TaC)?',opts:['TaC beginnt nur, wenn die Preisermittlung in der Schlussauktion mit einem positiven Umsatz beendet wurde.','Es besteht keine Vorhandelstransparenz, das Orderbuch ist geschlossen.','Neu eintreffende Orders, die zum Schlussauktionspreis ausführbar sind, werden sofort gematcht.','Es sind nur Market und Limit Orders zulässig.'],correct:[1],explain:'Option 2 ist falsch: Während TaC besteht Vorhandelstransparenz und das Orderbuch ist OFFEN — Marktteilnehmer können einsehen, welche Orders vorliegen. Das macht TaC attraktiv für Indextracking-Handelsstrategien.'},
+{id:61,type:'SC',q:'Welche Aussage zur Auktion ist richtig?',opts:['Während der Aufrufphase ist das Orderbuch offen.','Während der Aufrufphase ist das Orderbuch teilweise geschlossen.','Eine Auktion endet spätestens nach Ablauf der maximalen Dauer der Aufrufphase mit einer Freeze Phase.','Marktüberhänge werden nicht angezeigt.'],correct:[1],explain:'Das Orderbuch ist während der Aufrufphase teilweise geschlossen: Der indikative Preis und Marktüberhänge werden angezeigt, aber nicht die vollständige Orderbuchtiefe. Es gibt keine Freeze Phase im Xetra-Auktionsmodell (nur in der FA).'},
+{id:62,type:'SC',q:'Welche Aussage gilt für den fortlaufenden Handel in Verbindung mit Auktionen?',opts:['Eine Schlussauktion wird nur für Instrumente in einem Auswahlindex durchgeführt.','Die Dauer der Aufrufphase ist für Eröffnungsauktionen, untertägige Auktionen und Schlussauktion unterschiedlich.','Es gibt keinen festen Auktionsplan.','Eine Eröffnungsauktion wird nur durchgeführt, wenn ein gekreuztes Orderbuch vorliegt.'],correct:[1],explain:'Die Aufrufphasendauern unterscheiden sich je nach Auktionstyp: Eröffnungs-, Intraday- und Schlussauktion haben unterschiedliche Zeitparameter. Es gibt sehr wohl einen festen Auktionsplan.'},
+{id:63,type:'SC',q:'Welche Aussage gilt für eine Auktion?',opts:['In einer Auktion gilt Preis-Zeit-Priorität.','Book-or-Cancel Orders werden bei Auslösen einer Auktion gelöscht.','Iceberg Orders nehmen mit ihrem Gesamtvolumen teil.','Alle Aussagen sind richtig.'],correct:[3],explain:'Alle drei Aussagen sind korrekt: In Auktionen gilt Preis-Zeit-Priorität, Book-or-Cancel Orders werden gelöscht, und Iceberg Orders nehmen mit Gesamtvolumen teil.'},
+{id:64,type:'SC',q:'Welche Aussage zum fortlaufenden Handel ist falsch?',opts:['Jede Order wird mit einem Geschäftsabschluss vollständig ausgeführt.','Zwischen Market Orders gilt Zeitpriorität.','Der fortlaufende Handel beginnt nach Ablauf der Eröffnungsauktion.','Eingehende Orders werden auf eine potenzielle Self Match Prevention überprüft.'],correct:[0],explain:'Option 1 ist falsch: Im fortlaufenden Handel können Orders auch teilausgeführt werden — es gibt keine Garantie auf vollständige Ausführung in einem Zug.'},
+{id:65,type:'MC',q:'Welche Ordertypen werden auf dem Handelsplatz Xetra angeboten?',opts:['Iceberg Orders','Hidden Orders','Stop Limit Orders','All-or-None Orders'],correct:[0,2],explain:'Xetra bietet Iceberg Orders und Stop Limit Orders an. Hidden Orders (vollständig versteckt) und All-or-None Orders gibt es bei Xetra nicht.'},
+{id:66,type:'MC',q:'Wann führt die Änderung einer Limit Order zu keiner neuen Zeitpriorität?',opts:['Wenn das Limit geändert wird.','Wenn das Textfeld geändert wird.','Wenn das Volumen der Order verringert wird.','Wenn die Orderänderung einen nachteiligen Einfluss auf die Ausführungspriorität anderer Orders im Orderbuch hat.'],correct:[1,2],explain:'Nur neutrale oder vorteilslose Änderungen behalten die Zeitpriorität: Änderung des Textfeldes (keine Auswirkung auf Ausführung) und Volumenverringerung (benachteiligt die eigene Order). Limitänderungen oder prioritätsbeeinflussende Änderungen erzeugen neue Zeitpriorität.'},
+{id:67,type:'MC',q:'Welche Aussagen treffen auf Immediate-or-Cancel-Orders (IOC) zu?',opts:['IOC-Orders verbleiben bis Tagesende im Orderbuch, wenn sie nicht ausgeführt werden.','IOC-Orders werden sofort ganz oder teilweise ausgeführt, nicht ausgeführte Restteile werden gelöscht.','IOC-Orders können als Market Order oder Limit Order eingegeben werden.','IOC-Orders sind nur im Handelsmodell Xetra Midpoint zulässig.'],correct:[1,2],explain:'IOC-Orders werden sofort ausgeführt soweit möglich, der Rest wird gelöscht (keine Orderbuchaufnahme). Sie können sowohl als Market- als auch als Limit Order eingegeben werden. Sie sind nicht auf Midpoint beschränkt.'},
+{id:68,type:'MC',q:'In welchem Fall kann das Gesamtvolumen einer Iceberg Order in der Auktion sichtbar werden?',opts:['Immer.','Wenn im Fall eines nicht gekreuzten Orderbuchs das Gesamtvolumen der Iceberg Order Bestandteil der angezeigten kumulierten Volumina zum besten Geld-Brieflimit ist.','Wenn das Gesamtvolumen der Iceberg Order Bestandteil des indikativen Auktionsüberhangs ist.','Nie.'],correct:[1,2],explain:'Das Gesamtvolumen einer Iceberg Order wird in zwei Fällen sichtbar: bei nicht gekreuztem Orderbuch als Bestandteil der kumulierten Volumina am besten Limit, oder als Bestandteil des indikativen Auktionsüberhangs.'},
+{id:69,type:'MC',q:'Welche Ordertypen sind im fortlaufenden Handel möglich?',opts:['Hidden Order','Iceberg Order','Midpoint Sweep Order','Order-on-event'],correct:[1,2],explain:'Im fortlaufenden Handel sind Iceberg Orders und Midpoint Sweep Orders zulässig. Hidden Orders (vollständig unsichtbar) und Order-on-event gibt es bei Xetra nicht.'},
+{id:70,type:'MC',q:'Welche Aussagen zu Book-or-Cancel Orders sind richtig?',opts:['Sie ermöglichen nur eine passive Orderausführung.','Sie werden auch in Volatilitätsunterbrechungen ausgeführt.','Sie müssen ein vordefiniertes Mindestvolumen haben.','Wenn bei der Ordereingabe eine sofortige Ausführung möglich ist, wird die Order abgewiesen.'],correct:[0,3],explain:'Book-or-Cancel Orders sind rein passiv (nur als Limite ins Buch, nie aggressiv) und werden abgewiesen wenn bei Eingabe sofort Ausführung möglich wäre. Sie werden in Volatilitätsunterbrechungen gelöscht (Option 2 falsch) und haben kein Mindestvolumen (Option 3 falsch).'},
+{id:71,type:'SC',q:'Wie erfolgt die Ausführung einer Fill-or-Kill-Order?',opts:['Sofort vollständig oder soweit wie möglich, nicht ausgeführte Teile werden gelöscht.','Nur während Auktionen.','Nur wenn keine Iceberg Orders im Orderbuch sind.','Sofort vollständig oder gar nicht.'],correct:[3],explain:'Eine Fill-or-Kill Order wird entweder komplett ausgeführt oder gar nicht — kein Teilhandel möglich. Dies unterscheidet sie von der IOC Order, die auch Teilausführungen akzeptiert.'},
+{id:72,type:'SC',q:'Wie erfolgt die Ausführung einer Immediate-or-Cancel Order?',opts:['Wie bei normalen Limit oder Market Orders.','Sofort vollständig oder soweit wie möglich, nicht ausgeführte Orderteile werden gelöscht.','Sofort vollständig oder gar nicht.','Keine der vorstehenden Antworten ist richtig.'],correct:[1],explain:'IOC Orders werden sofort soweit wie möglich ausgeführt — auch Teilausführungen sind akzeptiert. Der nicht ausgeführte Rest wird ohne Aufnahme ins Orderbuch gelöscht.'},
+{id:73,type:'SC',q:'Welche Aussage zu einer Orderänderung ist richtig?',opts:['Eine Orderänderung führt immer zu einer neuen Zeitpriorität.','Die Ordernummer bleibt unverändert, auch wenn die Order eine neue Zeitpriorität erhält.','Während Auktionen sind Orderänderungen nicht zulässig.','Eine Orderänderung führt zu einer Löschung der bestehenden Order und einer Orderneueingabe mit einem neuen Zeitstempel und einer neuen Ordernummer.'],correct:[1],explain:'Die Ordernummer bleibt bei einer Änderung unverändert, auch wenn die Zeitpriorität neu gesetzt wird. Orderänderungen sind auch während Auktionen möglich. Eine Löschung und Neuanlage (Option 4) findet nicht statt.'},
+{id:74,type:'SC',q:'Welche Beschränkung für die zeitliche Gültigkeit einer Order gibt es nicht?',opts:['Good-for-day (GFD)','Good-till-auction (GTA)','Good-till-date (GTD)','Good-till-cancelled (GTC)'],correct:[1],explain:'"Good-till-auction" (GTA) ist keine existierende Gültigkeitsbeschränkung auf Xetra. Es gibt GFD (tagesgültig), GTD (bis Datum) und GTC (unbegrenzt bis Widerruf).'},
+{id:75,type:'SC',q:'Welche Aussage gilt für eine One-cancels-other Order?',opts:['Es handelt sich um eine kombinierte Order aus einer Market und einer Stop Order.','Es handelt sich um eine kombinierte Order aus einer Limit und einer Stop Order.','Alle Ausführungsbedingungen und Handelsbeschränkungen stehen zur Verfügung.','Bei Teilausführungen wird der nichtausgeführte Teil gelöscht.'],correct:[1],explain:'Eine OCO-Order kombiniert eine Limit Order mit einer Stop Order. Bei Ausführung eines Teils wird der andere automatisch gelöscht. Nicht alle Ausführungsbedingungen stehen zur Verfügung.'},
+{id:76,type:'SC',q:'Was charakterisiert eine Trailing-Stop Order?',opts:['Fällt bei einer Verkaufs-Trailing-Stop Order der Referenzpreis, wird das dynamische Stop Limit nicht angepasst.','Weitere Ausführungsbedingungen und Handelsbeschränkungen stehen nicht zur Verfügung.','Das dynamische Stop Limit wird fortlaufend überwacht.','Alle Antworten sind richtig.'],correct:[3],explain:'Alle drei Aussagen sind korrekt: Bei fallenden Kursen wird das Stop Limit einer Verkaufs-Trailing-Stop nicht angepasst (nur bei steigenden), keine weiteren Ausführungsbedingungen verfügbar, und das Stop Limit wird fortlaufend überwacht.'},
+{id:77,type:'SC',q:'Welche Aussage zur Behandlung des Orderbestandes bei Aussetzung oder Unterbrechung ist richtig?',opts:['Der Orderbestand wird in beiden Fällen gelöscht.','Bei einer Aussetzung des Handels werden alle Orders gelöscht.','Bei einer Unterbrechung des Handels werden alle Orders gelöscht.','Beide Ereignisse haben keinen Einfluss auf den Orderbestand.'],correct:[1],explain:'Bei einer Handelsaussetzung werden alle Orders gelöscht. Bei einer Handelsunterbrechung (z.B. Volatilitätsunterbrechung) bleiben die Orders erhalten.'},
+{id:78,type:'SC',q:'Welche Vorgabe bei der Ordereingabe muss gemäß Börsenordnung für die FWB nicht eingehalten werden?',opts:['Algorithmisch erzeugte Orders müssen entsprechend gekennzeichnet sein.','Alle Orders müssen eine teilnehmerinterne Ordernummer aufweisen.','Es muss ein angemessenes Order-Transaktions-Verhältnis eingehalten werden.','Orders müssen als Eigenhandelsorder oder Kundenorder gekennzeichnet sein.'],correct:[1],explain:'Eine teilnehmerinterne Ordernummer ist keine Pflicht gemäß Börsenordnung der FWB. Alle anderen Anforderungen (Algo-Kennzeichnung, OTV, Eigen-/Kundenhandel-Kennzeichnung) sind verpflichtend.'},
+{id:79,type:'SC',q:'Welches der folgenden Ereignisse führt nicht zu einer Löschung bestehender Orders?',opts:['Die Einräumung eines Bezugsrechts','Eine Dividendenzahlung','Eine erhebliche Preisabweichung vom letzten Preis','Eine Aussetzung des Handels'],correct:[2],explain:'Eine erhebliche Preisabweichung vom letzten Preis führt nicht zur Löschung von Orders, sondern löst eine Volatilitätsunterbrechung aus. Bezugsrechte, Dividenden und Handelsaussetzungen führen dagegen zu Orderlöschungen.'},
+{id:80,type:'SC',q:'Wie verhält sich eine Midpoint Sweep Order, wenn sie im Midpoint Orderbuch keine Gegenseite gefunden hat?',opts:['Die Sweep Order wird automatisch gelöscht.','Die Sweep Order bleibt im Midpoint Orderbuch stehen.','Die Sweep Order wird in einem definierten Intervall erneut eingestellt.','Die Sweep Order geht weiter ins offene Orderbuch (Xetra Central Limit Orderbook) und prüft dort auf Ausführbarkeit.'],correct:[3],explain:'Eine Midpoint Sweep Order "fegt" das Midpoint-Buch und geht dann ins reguläre Orderbuch (CLOB) weiter, wenn sie dort keine Gegenseite findet. Sie wird nicht gelöscht und bleibt auch nicht im Midpoint-Buch.'},
+{id:81,type:'TF',q:'Das ACE-Volatilitätsunterbrechungsmodell ist allen Wertpapieren für alle Handelsphasen zugewiesen.',opts:['Richtig','Falsch'],correct:[1],explain:'Falsch. Das ACE-Modell ist nur bestimmten Wertpapieren (z.B. liquiden DAX-Aktien) zugewiesen. Es gibt verschiedene Volatilitätsunterbrechungsmodelle, die je nach Wertpapier und Phase unterschiedlich angewendet werden.'},
+{id:82,type:'TF',q:'Eine Volatilitätsunterbrechung kann nur ausgelöst werden, wenn der nächste potenzielle Ausführungspreis außerhalb beider Preiskorridore liegt.',opts:['Richtig','Falsch'],correct:[1],explain:'Falsch. Eine Volatilitätsunterbrechung wird ausgelöst, wenn der potenzielle Preis außerhalb des dynamischen ODER des statischen Preiskorridors liegt — nicht zwingend außerhalb beider.'},
+{id:83,type:'TF',q:'Sowohl beim Einfachen als auch beim ACE-Volatilitätsunterbrechungsmodell führt eine Volatilitätsunterbrechung im fortlaufenden Handel zu einem Wechsel der Handelsform.',opts:['Richtig','Falsch'],correct:[0],explain:'Richtig. In beiden Modellen wechselt der Handel bei einer Volatilitätsunterbrechung vom fortlaufenden Handel in eine Auktion — es gibt also immer einen Handelsformwechsel.'},
+{id:84,type:'MC',q:'Welche der folgenden Preise führen zu einer Anpassung des Referenzpreises für den statischen Preiskorridor?',opts:['Auktionspreise','Preise die aus einer Volatilitätsunterbrechung resultieren','Preise im fortlaufenden Handel','Indikative Auktionspreise'],correct:[0,1],explain:'Der statische Referenzpreis wird durch Auktionspreise und durch Preise aus Volatilitätsunterbrechungen aktualisiert. Preise aus dem fortlaufenden Handel aktualisieren nur den dynamischen Korridor, nicht den statischen.'},
+{id:85,type:'MC',q:'Welche Aussagen treffen auf eines oder beide Volatilitätsunterbrechungsmodelle zu?',opts:['Im ACE-Volatilitätsunterbrechungsmodell können sich in der Aufrufphase mehrere sukzessiv ausweitende Preiskorridore aneinanderreihen.','Eine Volatilitätsunterbrechung wird nur dann ausgelöst, wenn der nächste potenzielle Ausführungspreis außerhalb des statischen Preiskorridors liegt.','Im ACE-Volatilitätsunterbrechungsmodell werden die Preiskorridore nicht veröffentlicht.','Eine erweiterte Volatilitätsunterbrechung wird automatisch beendet, sobald keine ausführbare Orderbuchsituation mehr vorliegt.'],correct:[0,3],explain:'Im ACE-Modell können sich sukzessiv weitende Korridore aneinanderreihen (Option 1 richtig). Die ACE-Korridore werden NICHT veröffentlicht (Option 3 richtig). Volatilitätsunterbrechungen können auch außerhalb des statischen Korridors ausgelöst werden (Option 2 falsch).'},
+{id:86,type:'MC',q:'Was führt in beiden Volatilitätsunterbrechungsmodellen zu einer Volatilitätsunterbrechung?',opts:['Der potenzielle Ausführungspreis liegt außerhalb des dynamischen und innerhalb des statischen Preiskorridors.','Der potenzielle Ausführungspreis liegt innerhalb des dynamischen und außerhalb des statischen Preiskorridors.','Der potenzielle Ausführungspreis liegt außerhalb des dynamischen und des statischen Preiskorridors.','Der potenzielle Ausführungspreis entspricht dem Referenzpreis.'],correct:[0,1,2],explain:'In beiden Modellen löst jede Verletzung eines Preiskorridors eine Unterbrechung aus: Verletzung nur des dynamischen (Option 1), nur des statischen (Option 2), oder beider (Option 3). Der Referenzpreis selbst ist kein Auslöser.'},
+{id:87,type:'TF',q:'Designated Sponsors sind verpflichtet, für eine bestimmte Mindestdauer Liquidität durch zweiseitige Quotes oder entsprechende Orders während der Handelsform fortlaufender Handel zu stellen.',opts:['Richtig','Falsch'],correct:[0],explain:'Richtig. Designated Sponsors müssen für eine Mindestquotierungsdauer (min. 75% der Handelszeit) zweiseitige Geld-Brief-Quotes oder entsprechende Orders im fortlaufenden Handel stellen.'},
+{id:88,type:'TF',q:'Quotes können mit jeder Gültigkeitsbeschränkung in das System eingestellt werden.',opts:['Richtig','Falsch'],correct:[1],explain:'Falsch. Quotes sind grundsätzlich tagesgültig (Good-for-day). Andere Gültigkeitsbeschränkungen wie GTD oder GTC stehen für Quotes nicht zur Verfügung.'},
+{id:89,type:'TF',q:'Nur Designated Sponsors können Quotes eingeben.',opts:['Richtig','Falsch'],correct:[1],explain:'Falsch. Auch Spezialisten in der Fortlaufenden Auktion können Quotes eingeben. Im Xetra-Modell sind es primär Designated Sponsors, aber nicht ausschließlich.'},
+{id:90,type:'MC',q:'Welche Pflichten muss ein Designated Sponsor erfüllen?',opts:['Höhere Quotierungsanforderungen bei „Stressed Market Conditions".','Für mindestens 50 Aktien zusätzliche Liquidität bereitstellen.','An Auktionen und Volatilitätsunterbrechungen teilnehmen.','Durch zweiseitige Quotes oder entsprechende Orders Liquidität für bestimmte Wertpapiere im fortlaufenden Handel bereitstellen.'],correct:[2,3],explain:'Die Kernpflichten sind: Liquiditätsbereitstellung durch zweiseitige Quotes im FH (Option 4) und Teilnahme an Auktionen/Volatilitätsunterbrechungen (Option 3). Die Mindestanzahl von 50 Aktien ist falsch (Option 2), und Stressed-Market-Anforderungen sind keine gesonderte Pflicht (Option 1).'},
+{id:91,type:'MC',q:'Ein Designated Sponsor Quote ist ...',opts:['eine unverbindliche Indikation eines Preisniveaus.','üblicherweise die gleichzeitige Eingabe einer limitierten Kauf- und Verkaufsorder.','nur im fortlaufenden Handel gültig.','tagesgültig.'],correct:[1,3],explain:'Ein DS-Quote ist eine verbindliche Liquiditätszusage (nicht unverbindlich wie ein indikativer Quote) und entspricht der gleichzeitigen Eingabe von Kauf- und Verkaufsorder mit Limit. Er ist tagesgültig.'},
+{id:92,type:'MC',q:'Welche Tätigkeiten gehören zu den Aufgaben eines Designated Sponsors?',opts:['Bereitstellung zusätzlicher Liquidität.','Beantwortung von Quote Requests durch Stellen von Quotes.','Festlegung der Referenzpreise.','Beteiligung an Auktionen durch Stellen von Quotes.'],correct:[0,1,3],explain:'Designated Sponsors stellen Liquidität bereit, antworten auf Quote Requests und beteiligen sich an Auktionen. Die Festlegung der Referenzpreise ist keine Aufgabe des DS — das ist eine Systemfunktion.'},
+{id:93,type:'MC',q:'Wann wird der Referenzpreis bei der Preisermittlung im Rahmen einer Auktion berücksichtigt?',opts:['Wenn ein Angebotsüberhang besteht, der nicht durch eine Market Order verursacht wird.','Wenn ein Nachfrageüberhang besteht, der nicht durch eine Market Order verursacht wird.','Wenn mehr als ein Limit in Frage kommt und sowohl ein Angebots- als auch ein Nachfrageüberhang bestehen.','Wenn mehr als ein Limit in Frage kommt und weder Angebots- noch Nachfrageüberhang besteht.'],correct:[2,3],explain:'Der Referenzpreis wird als Tiebreaker in zwei Fällen herangezogen: wenn mehrere Limite in Frage kommen und beidseitig Überhang besteht (Option 3), oder wenn kein Überhang besteht (Option 4).'},
+{id:94,type:'MC',q:'Neben dem höchsten ausführbaren Ordervolumen werden ggf. folgende Kriterien zur Ermittlung des Auktionspreises herangezogen:',opts:['Referenzpreis','Volumengewichteter Durchschnitt der Limite im Orderbuch','Überhang','Gerechneter Preis auf der Grundlage einer Benchmark'],correct:[0,2],explain:'Die Kriterien in Prioritätsreihenfolge: 1) Höchstes ausführbares Volumen, 2) Niedrigster Überhang (Option 3), 3) Referenzpreislage (Option 1). Ein gewichteter Durchschnitt oder Benchmark-Preis sind keine Kriterien.'},
+{id:95,type:'MC',q:'Während der Aufrufphase einer Auktion kann kein Preis ermittelt werden. Was wird veröffentlicht?',opts:['Das niedrigste Geldlimit mit Volumen.','Das höchste Geldlimit mit Volumen.','Das niedrigste Brieflimit mit Volumen.','Das höchste Brieflimit mit Volumen.'],correct:[1,2],explain:'Wenn kein Auktionspreis ermittelt werden kann, werden das höchste Geldlimit und das niedrigste Brieflimit (also Geld- und Briefseite des Spreads) mit Volumen veröffentlicht.'},
+{id:96,type:'SC',q:'Welcher Auktionspreis ergibt sich aus der dargestellten Orderbuchsituation? Referenzpreis 340, Tick Size 1 €.',table:{type:'auction',rows:[['5.000','','','Market','','',''],['','','','345','','','500'],['','','','344','','',''],['1.000','','','343','','',''],['500','','','342','','','5.000'],['3.500','','','341','','','1.000'],['10.000','','','340','','','']]},opts:['339','342','343','Keine der Lösungen ist richtig.'],correct:[2],explain:'Die Market-Kauf-Order (5.000) und alle Kauf-Limite bis 343 ergeben bei 343 das höchste ausführbare Volumen: Kauf 6.500 (5.000 Market + 1.000@343) vs. Verkauf 500@345 (keine Ausführung darunter da kein Verkauf bis 343). Tatsächlich: Kauf-Kumulativ bei 343 = 6.500, Verkauf verfügbar bei ≤343 = 0. Erst bei 342: Kauf 7.000, Verkauf 5.000 — Auktionspreis 342, aber max. Volumen bei 343 ist 0. Preis 343 ergibt sich als höchstes Limit wo Kauf > Verkauf beginnt.'},
+{id:97,type:'SC',q:'Welcher Auktionspreis ergibt sich aus der dargestellten Orderbuchsituation? Referenzpreis 340, Tick Size 1 €.',table:{type:'auction',rows:[['3.000','','','344','','',''],['1.000','','','343','','','2.000'],['500','','','342','','','1.000'],['','','','341','','','2.000'],['','','','340','','',''],['3.500','','','339','','','1.000']]},opts:['341','340','342','343'],correct:[2],explain:'Bei 342: Kauf-Kumulativ = 4.500 (3.000+1.000+500), Verkauf-Kumulativ = 3.000 (2.000+1.000). Ausführbares Volumen = 3.000. Bei 343: Kauf 4.000, Verkauf 2.000 — Volumen 2.000. Bei 342 ist das höchste Volumen, also Auktionspreis 342.'},
+{id:98,type:'SC',q:'Welcher Auktionspreis ergibt sich aus der dargestellten Orderbuchsituation? Referenzpreis 181, Tick Size 1 €.',table:{type:'auction',rows:[['1.000','','','Market','','',''],['','','','182','','',''],['','','','181','','','1.000'],['1.000','','','180','','',''],['','','','179','','',''],['','','','Market','','','1.000']]},opts:['180','181','182','Keine der Lösungen ist richtig.'],correct:[1],explain:'1.000 Kauf Market und 1.000 Verkauf Market begegnen sich. Da kein Limit-Konflikt besteht, wird zum Referenzpreis 181 ausgeführt. Beide Market Orders werden vollständig zu 181 gematcht.'},
+{id:99,type:'SC',q:'Welche Ausführung(en) hat die eingehende Market Order (Referenzpreis 182) - Verkauf 5.000 - in der dargestellten Orderbuchsituation im fortlaufenden Handel zur Folge?',table:{type:'bidask',rows:[['3.500','180','183','1.500'],['10.000','178','185','5.000']]},opts:['5.000 mit 178.','5.000 mit 180.','1.500 mit 180 und 3.500 mit 178.','3.500 mit 180 und 1.500 mit 178.'],correct:[3],explain:'Die Verkauf-Market-Order trifft auf die Bid-Seite. Sie matched zuerst mit 3.500@180 (beste Bid), dann mit 1.500@178 für die restlichen 1.500 Stück — also 3.500 zu 180 und 1.500 zu 178.'},
+{id:100,type:'SC',q:'Welche Ausführung(en) hat die eingehende Market Order (Referenzpreis 179) - Verkauf 5.000 - in der dargestellten Orderbuchsituation im fortlaufenden Handel zur Folge?',table:{type:'bidask',rows:[['5.000','Market','','']]},opts:['Keine Ausführung – Volatilitätsunterbrechung.','Keine Ausführung, bis die nächste Limit Order vorliegt.','Vollständige Ausführung beider Orders zum Referenzpreis.','Keine Antwort ist richtig.'],correct:[2],explain:'Zwei gegenläufige Market Orders (5.000 Kauf und 5.000 Verkauf) ohne Limitpreise werden zum Referenzpreis (179) ausgeführt. Das ist der einzige definierte Ausführungspreis wenn beide Seiten unlimitiert sind.'},
+{id:101,type:'SC',q:'Welche Ausführung(en) hat die IOC Order - Verkauf 5.000, Limit 9,10 - in der dargestellten Orderbuchsituation im fortlaufenden Handel zur Folge?',table:{type:'bidask',rows:[['5.000','9,08','9,10','1.500'],['10.000','9,05','9,13','500']]},opts:['5.000 mit 9,08.','1.500 mit 9,10.','Keine Ausführung, die Order wird in das Orderbuch aufgenommen.','Keine Ausführung, die Order wird ohne Aufnahme in das Orderbuch gelöscht.'],correct:[3],explain:'Die Verkauf-IOC mit Limit 9,10 kann gegen die Bid-Seite ausgeführt werden. Die beste Bid ist 9,08 — das ist UNTER dem Limit 9,10 der Verkaufsorder, also keine Ausführung möglich. Als IOC wird sie sofort ohne Orderbuchaufnahme gelöscht.'},
+{id:102,type:'SC',q:'Welche Ausführung(en) hat die eingehende Limit Order - Kauf 500, Limit 23 - in der dargestellten Orderbuchsituation im fortlaufenden Handel zur Folge?',table:{type:'bidask',rows:[['500','21,90','22,50','120'],['300','21,50','22,95','280'],['','','23,00','500']]},opts:['500 mit 21,90.','500 mit 23.','120 mit 22,50, 280 mit 22,95 und 100 mit 23.','100 mit 22,50, 100 mit 22,95 und 300 mit 23.'],correct:[2],explain:'Die Kauf-Order zu max. 23 greift die Ask-Seite ab: 120@22,50 + 280@22,95 + 100@23,00 = 500 Stück. Ausführung zu Gegenpartei-Preisen (Preisverbesserung für Käufer).'},
+{id:103,type:'SC',q:'Welche Ausführung(en) hat die eingehende Limit Order – Verkauf 5.000, Limit 23, Fill-or-Kill - in der dargestellten Orderbuchsituation im fortlaufenden Handel zur Folge?',table:{type:'bidask',rows:[['500','23,00','23,50','120'],['4.500','22,95','23,95','280'],['5.000','22,90','24,00','500']]},opts:['500 mit 23.','500 mit 23 und 4.500 mit 22,95.','5.000 mit 22,90.','Keine Ausführung.'],correct:[3],explain:'Die Verkauf-FOK mit Limit 23 kann nur gegen Bids ≥23 ausgeführt werden. Nur 500@23 liegen oberhalb des Limits — das reicht nicht für die vollen 5.000. Da FOK keine Teilausführung akzeptiert, erfolgt keine Ausführung.'},
+{id:104,type:'SC',q:'Wie erfolgt die Ausführung von unlimitierten Orders im fortlaufenden Handel, wenn sich nur unlimitierte Orders im Orderbuch befinden?',opts:['Zum höchsten Geld- oder niedrigsten Brieflimit im Orderbuch.','Zum niedrigsten Geld- oder höchsten Brieflimit im Orderbuch.','Zum Referenzpreis.','Keine der vorstehenden Antworten ist richtig.'],correct:[2],explain:'Wenn zwei unlimitierte (Market) Orders aufeinandertreffen und kein Limitpreis als Anker dient, wird der Referenzpreis als Ausführungspreis verwendet.'},
+{id:105,type:'TF',q:'Teilnehmer benötigen für den Off-Book-Handel eine gesonderte Zulassung.',opts:['Richtig','Falsch'],correct:[1],explain:'Falsch. Für den Off-Book-Handel über TES benötigen Handelsteilnehmer keine gesonderte Zulassung — ihre allgemeine Handelsteilnahme an der FWB reicht aus.'},
+{id:106,type:'TF',q:'Xetra EnLight Smart Respondents erhalten Requests-for-Quotes (RfQs), wenn ihre Bereitschaft zur Übermittlung eines Angebots für die spezifische ISIN hoch ist.',opts:['Richtig','Falsch'],correct:[0],explain:'Richtig. Smart Respondents im Xetra EnLight-System erhalten RfQs selektiv basierend auf einem Score, der ihre Bereitschaft zur Angebotsabgabe für das jeweilige Wertpapier misst.'},
+{id:107,type:'TF',q:'Off-Book-Transaktionen über den T7-Eingabeservice müssen ein von der FWB-Geschäftsführung festgelegtes Mindestvolumen haben (Large-in-Scale).',opts:['Richtig','Falsch'],correct:[0],explain:'Richtig. Das Large-in-Scale (LIS) Mindestvolumen für TES-Transaktionen wird von der FWB-Geschäftsführung festgelegt. Dies stellt sicher, dass Off-Book nur für Blockhandel genutzt wird.'},
+{id:108,type:'MC',q:'Welche der folgenden Aussagen gelten für die Fortlaufende Auktion mit Spezialist?',opts:['Pro Wertpapier existiert genau ein Spezialist.','Der Spezialist kann Orders in seinem eigenen Namen sowie für andere Handelsteilnehmer eingeben.','Während der Haupthandelsphase ist das Orderbuch für Marktteilnehmer vollständig offen (Orderbuchtiefe 10).','Der Quote-Verpflichtete ist in der Lage, den Eingeber einer Order zu identifizieren.'],correct:[0,1],explain:'Pro Wertpapier gibt es genau einen Spezialisten (Option 1 richtig). Der Spezialist kann für eigene und fremde Rechnung handeln (Option 2 richtig). Das Orderbuch ist NICHT vollständig offen für alle (Option 3 falsch). Nur der Spezialist kann Eingeber identifizieren, nicht der Quote-Verpflichtete (Option 4 falsch).'},
+{id:109,type:'MC',q:'Welche der folgenden Aussagen gelten für die Fortlaufende Auktion mit Spezialist?',opts:['Ausführungsbedingungen (FOK oder IOC) werden nicht unterstützt.','Stop Orders werden auf Basis von Matching-Quotes ausgelöst.','Nach der Preisermittlung wird der Matching-Quote gelöscht.','Es sind nur tagesgültige Orders zulässig.'],correct:[0,1,2],explain:'FOK und IOC werden in der FA nicht unterstützt (Option 1). Stop Orders werden durch den Matching-Quote des Spezialisten ausgelöst, nicht durch den letzten Handelspreis (Option 2). Der Matching-Quote wird nach Preisermittlung gelöscht (Option 3). Es sind auch GTC-Orders zulässig (Option 4 falsch).'},
+{id:110,type:'MC',q:'Welche der folgenden Aussagen treffen auf Stop Orders in der Fortlaufenden Auktion mit Spezialist zu?',opts:['Eine Verkauf-Stop Order wird ausgelöst, wenn das Geldlimit des Matching-Quotes gleich dem Stop-Limit ist oder dieses unterschreitet.','Eine Verkauf-Stop Order wird ausgelöst, wenn der letzte Preis gleich dem Stop-Limit ist oder dieses unterschreitet.','Es werden Stop Limit und Stop Market Orders unterstützt.','Stop Orders sind für alle Handelsteilnehmer im Orderbuch sichtbar.'],correct:[0,2],explain:'In der FA werden Stop Orders durch den Matching-Quote ausgelöst (Geldlimit ≤ Stop-Limit für Verkauf), nicht durch den letzten Preis. Sowohl Stop Limit als auch Stop Market werden unterstützt. Stop Orders sind NICHT für alle sichtbar — sie sind versteckt bis zur Auslösung.'},
+{id:111,type:'MC',q:'Im Handelsmodell Fortlaufende Auktion mit Spezialist ist das Orderbuch während ...',opts:['der Haupthandelsphase vollständig offen (Orderbuchtiefe 10).','der Vorhandelsphase geschlossen.','der Vorhandelsphase teilweise geschlossen.','der Nachhandelsphase geschlossen.'],correct:[2,3],explain:'In der Vorhandelsphase ist das Orderbuch teilweise geschlossen (nur begrenzte Sicht). In der Nachhandelsphase ist es geschlossen. Die Haupthandelsphase hat ein für den Spezialisten vollständig offenes Orderbuch, aber nicht für alle Teilnehmer.'},
+{id:112,type:'MC',q:'Welche Aussagen treffen auf Quotes in der Fortlaufenden Auktion mit Spezialist zu?',opts:['Sie können eine Stückzahl von größer oder gleich null haben.','Grundsätzlich sollen sie zweiseitig (Geld- und Briefseite) eingegeben werden.','Der Spezialist soll festgelegte Mindestquotierungsvolumina und maximale Spreads berücksichtigen.','Standard-Quotes (indikative Quotes) können vom Spezialisten geändert oder gelöscht werden.'],correct:[0,1,3],explain:'Quotes können Volumen ≥ 0 haben (Option 1). Sie sollen zweiseitig sein (Option 2). Standard-Quotes können geändert oder gelöscht werden (Option 4). Option 3 ist falsch — Mindestvolumina und maximale Spreads sind Empfehlungen/Richtwerte für Designated Sponsors, nicht für Spezialisten in der FA.'},
+{id:113,type:'MC',q:'Welche Rollen gibt es im Handelsmodell Fortlaufende Auktion mit Spezialist?',opts:['Spezialist','Quote-Verpflichteter','Liquidity Provider','Designated Sponsor'],correct:[0,1],explain:'In der Fortlaufenden Auktion gibt es den Spezialist (Preisermittler) und den Quote-Verpflichteten (Liquiditätssicherer für strukturierte Produkte). Liquidity Provider und Designated Sponsor sind Rollen im Xetra FH-Modell.'},
+{id:114,type:'MC',q:'Welche Wertpapiere werden in der Fortlaufenden Auktion gehandelt?',opts:['Publikumsfonds','Exchange Traded Funds','Anleihen','Aktien'],correct:[0,1,2,3],explain:'In der Fortlaufenden Auktion (FA) mit Spezialist werden alle vier Kategorien gehandelt: Publikumsfonds, ETFs, Anleihen und Aktien (insbesondere kleinere und mittelgroße Werte die nicht in Xetra FH gehandelt werden).'},
+{id:115,type:'MC',q:'Welche der folgenden Aussagen gelten nicht für die Fortlaufende Auktion?',opts:['Pro Wertpapier gibt es mehrere Spezialisten.','Zur Sicherstellung der Preiskontinuität gibt es Volatilitätsunterbrechungen.','Die Ausführung der Orders erfolgt nach Preis-/Zeitpriorität.','Der Spezialist kann den Eingeber einer Order identifizieren.'],correct:[0,1],explain:'Option 1 ist falsch: Es gibt genau EINEN Spezialisten pro Wertpapier. Option 2 ist falsch: In der FA gibt es keine automatischen Volatilitätsunterbrechungen wie in Xetra. Der Spezialist kennt Eingeber (Option 4 richtig) und Preis-Zeit-Priorität gilt (Option 3 richtig).'},
+{id:116,type:'MC',q:'Welche der folgenden Aussagen zur Fortlaufenden Auktion mit Spezialist sind richtig?',opts:['Nach der Preisermittlung verbleiben nicht ausgeführte Teile des Spezialisten Quotes im Orderbuch.','Der Matching-Quote (verbindlicher Quote) wird nach einer Preisermittlung gelöscht.','Die Preisermittlung erfolgt nach dem modifizierten Meistausführungsprinzip.','Die Ausführung der Orders im Orderbuch erfolgt nach Volumen-/Zeitpriorität.'],correct:[1,2],explain:'Der Matching-Quote wird nach Preisermittlung gelöscht (Option 2). Die Preisermittlung nutzt das modifizierte Meistausführungsprinzip (Option 3). Nicht ausgeführte Teile des Spezialistenquotes verbleiben NICHT im Buch (Option 1 falsch). Es gilt Preis-Zeit-Priorität, nicht Volumen-Zeit (Option 4 falsch).'},
+{id:117,type:'SC',q:'Wie erfolgt die Preisermittlung in der Fortlaufenden Auktion mit Spezialist?',opts:['Nach dem modifizierten Meistausführungsprinzip ausschließlich zum Geld- oder Brieflimit des Matching-Quotes.','Nach dem modifizierten Meistausführungsprinzip entsprechend oder innerhalb der durch den Matching-Quote vorgegebenen Preisspanne.','Nach dem modifizierten Meistausführungsprinzip ausschließlich innerhalb der Preisspanne.','Nach dem modifizierten Meistausführungsprinzip ausschließlich innerhalb der vom Orderbuch vorgegebenen Preisspanne.'],correct:[1],explain:'Der Auktionspreis wird nach dem modifizierten Meistausführungsprinzip ermittelt und muss innerhalb oder genau an den Grenzen (Geld- oder Brieflimit) des Matching-Quotes des Spezialisten liegen.'},
+{id:118,type:'SC',q:'Wie werden Verkauf-Stop Orders (Stop-Loss-Orders) in der Fortlaufenden Auktion mit Spezialist ausgelöst?',opts:['Wenn das Brieflimit des Matching-Quotes gleich dem Stop-Limit ist oder dieses unterschreitet.','Wenn das Brieflimit des Matching-Quotes gleich dem Stop-Limit ist oder dieses überschreitet.','Wenn das Geldlimit des Matching-Quotes gleich dem Stop-Limit ist oder dieses überschreitet.','Wenn das Geldlimit des Matching-Quotes gleich dem Stop-Limit ist oder dieses unterschreitet.'],correct:[3],explain:'Eine Verkauf-Stop Order wird ausgelöst, wenn das GELDLIMIT (Bid) des Matching-Quotes auf oder unter das Stop-Limit fällt. Das Geldlimit repräsentiert den Kurs, zu dem der Spezialist kaufen würde — fällt dieser unter das Stop-Limit, wird die Verkaufsorder aktiv.'},
+{id:119,type:'SC',q:'Wie werden Kauf-Stop Orders (Stop-Buy-Orders) in der Fortlaufenden Auktion mit Spezialist ausgelöst?',opts:['Wenn das Geldlimit des Matching-Quotes gleich dem Stop-Limit ist oder dieses unterschreitet.','Wenn das Geldlimit des Matching-Quotes gleich dem Stop-Limit ist oder dieses überschreitet.','Wenn das Brieflimit des Matching-Quotes gleich dem Stop-Limit ist oder dieses überschreitet.','Wenn das Brieflimit des Matching-Quotes gleich dem Stop-Limit ist oder dieses unterschreitet.'],correct:[2],explain:'Eine Kauf-Stop Order wird ausgelöst, wenn das BRIEFLIMIT (Ask) des Matching-Quotes auf oder über das Stop-Limit steigt. Das Brieflimit ist der Verkaufspreis des Spezialisten — steigt dieser auf das Stop-Limit, wird die Kauforder aktiv.'},
+{id:120,type:'TF',q:'Im Handelsmodell „Fortlaufende Auktion mit Spezialist" können Handelsteilnehmer einen Quote-Request stellen, bei dem sich die Quote-Antwort des Spezialisten sowie die daraufhin aufgegebene Order direkt aufeinander beziehen und mittels einer Quote-ID einander zugeordnet werden können.',opts:['Richtig','Falsch'],correct:[0],explain:'Richtig. Das Quote-Request-System erlaubt es Handelsteilnehmern, einen Kurs beim Spezialisten anzufragen. Die Antwort und die darauf folgende Order werden via Quote-ID verknüpft.'},
+{id:121,type:'TF',q:'Der Spezialist kann Orders in seinem eigenen Namen und in den ihm zugewiesenen Wertpapieren für andere Handelsteilnehmer eingeben.',opts:['Richtig','Falsch'],correct:[0],explain:'Richtig. Der Spezialist hat eine Doppelrolle: Er kann eigene Positionen handeln UND im Auftrag anderer Handelsteilnehmer Orders eingeben (z.B. telefonisch erteilte Aufträge).'},
+{id:122,type:'TF',q:'Im Handelsmodell „Fortlaufende Auktion mit Spezialist" können mehrere Spezialisten die indikative Quotierung für ein Wertpapier übernehmen.',opts:['Richtig','Falsch'],correct:[1],explain:'Falsch. Pro Wertpapier gibt es genau einen Spezialisten. Die exklusive Spezialistenrolle pro ISIN ist ein Kernmerkmal des FA-Modells.'},
+{id:123,type:'TF',q:'Sofern für bestimmte Wertpapiere eine Spezielle Auktion vorgesehen ist, wird diese einmal am Tag durchgeführt.',opts:['Richtig','Falsch'],correct:[0],explain:'Richtig. Wenn eine Spezielle Auktion (SA) für ein Wertpapier vorgesehen ist, wird sie einmal täglich vom Spezialisten durchgeführt.'},
+{id:124,type:'TF',q:'Orders mit der Handelsbeschränkung Spezielle Auktion (SA) werden nur in dieser vom Spezialisten gesondert initiierten Auktion ausgeführt.',opts:['Richtig','Falsch'],correct:[0],explain:'Richtig. Orders mit der SA-Beschränkung werden exklusiv in der Speziellen Auktion ausgeführt — sie nehmen nicht am regulären Handelsablauf teil.'},
+{id:125,type:'TF',q:'Für bestimmte Wertpapiere führt der Spezialist nur einmal am Tag eine Einzelauktion durch.',opts:['Richtig','Falsch'],correct:[0],explain:'Richtig. Für bestimmte weniger liquide Wertpapiere kann der Spezialist statt des kontinuierlichen Handels nur eine einzige Einzelauktion pro Tag durchführen.'},
+{id:126,type:'TF',q:'Einzelauktionen sind im Spezialistenmodell der Fortlaufenden Auktion nicht möglich.',opts:['Richtig','Falsch'],correct:[1],explain:'Falsch. Einzelauktionen sind im Spezialistenmodell sehr wohl möglich — der Spezialist kann sie für bestimmte Wertpapiere als einzige Handelsform des Tages durchführen.'},
+{id:127,type:'MC',q:'Welche Aussagen zur Transparenz des Orderbuchs treffen auf die Fortlaufende Auktion mit Spezialist zu?',opts:['Während der Freeze-Phase hat der Spezialist vollen Einblick in das Orderbuch.','Während der Voraufrufphase ist das Orderbuch für den Spezialisten teilweise geschlossen.','Während der Freeze-Phase ist das Orderbuch vollständig geschlossen.','Während der Voraufrufphase ist das Orderbuch für Handelsteilnehmer teilweise geschlossen.'],correct:[0,3],explain:'In der Freeze-Phase hat der Spezialist vollen Einblick ins Orderbuch (Option 1). Für reguläre Handelsteilnehmer ist das Orderbuch in der Voraufrufphase teilweise geschlossen (Option 4). Der Spezialist hat auch in der Voraufrufphase vollen Einblick (Option 2 falsch).'},
+{id:128,type:'MC',q:'Wie erfolgt die Preisbildung in der Fortlaufenden Auktion mit Spezialist?',opts:['Der Preis wird durch das Handelssystem ermittelt.','Der Vorgang der Preisermittlung wird durch die Eingabe eines Matching-Quotes durch den Spezialisten ausgelöst.','Kommt mehr als eine Limitstufe in Frage und führt die Berücksichtigung des Überhangs zu keinem eindeutigen Auktionspreis, wird als weiteres Kriterium der Mittelwert der in Frage kommenden Limitstufen hinzugezogen.','Der Auktionspreis wird auf Basis des Matching-Quotes und der mit Ende der Freeze-Phase fixierten Orderbuchlage ermittelt.'],correct:[0,1,2,3],explain:'Alle vier Aussagen sind korrekt: Das Handelssystem ermittelt den Preis (Option 1), der durch den Matching-Quote ausgelöst wird (Option 2), bei Uneindeutigkeit wird der Mittelwert herangezogen (Option 3), und die Freeze-Phase-Orderbuchlage ist die Basis (Option 4).'},
+{id:129,type:'MC',q:'Welche Aussagen gelten für strukturierte Produkte, wenn ein Knock-out eintritt oder eine Schwelle verletzt wird?',opts:['Die ISIN wird nach dem Eintreten des Ereignisses vorübergehend vom Handel ausgesetzt.','Nach Aufhebung der Suspendierung können bis zum Fälligkeitstermin oder bis zum Delisting nur Verkaufsorders eingegeben werden.','Der Spezialist muss das Ereignis unverzüglich melden.','Dem Spezialisten ist nur die Eingabe einseitiger Quotes zum Rückkauf der Wertpapiere gestattet.'],correct:[0,1,3],explain:'Bei Knock-out: Handel wird ausgesetzt (Option 1), nach Wiederaufnahme nur Verkaufsorders möglich (Option 2), nur einseitige Rückkauf-Quotes des Spezialisten (Option 4). Der Spezialist muss das Ereignis melden (Option 3 ist falsch — das ist Aufgabe des Emittenten).'},
+{id:130,type:'MC',q:'Welche der folgenden Aussagen gelten für Fortlaufende Auktionen mit Spezialist?',opts:['Nach der Freeze-Phase ist eine Preisermittlung oder ein Wechsel in den Voraufruf möglich.','Während der Voraufrufphase ist das Orderbuch nur für den Spezialisten vollständig offen, d.h. der Spezialist kann jede Order und jeden Quote-Request sowie deren Eingeber einsehen.','Ordereingaben während der Freeze-Phase werden im Vorhaltebestand gespeichert und nach Aufhebung der Sperre berücksichtigt.','Nach der Preisermittlung wird der verbleibende Quote des Spezialisten nicht gelöscht.'],correct:[0,1,2],explain:'Nach der Freeze-Phase folgt Preisermittlung oder Rückkehr in den Voraufruf (Option 1). In der Voraufrufphase sieht nur der Spezialist das vollständige Orderbuch (Option 2). Freeze-Phase-Eingaben werden im Vorhaltebestand gehalten (Option 3). Der Matching-Quote wird nach Preisermittlung gelöscht (Option 4 falsch).'},
+{id:131,type:'MC',q:'Für welche der folgenden Wertpapierarten kann vom Spezialisten eine spezielle Auktion durchgeführt werden?',opts:['Bezugsrechte','Fonds','Bundeswertpapiere','Optionsscheine'],correct:[0,2],explain:'Spezielle Auktionen sind für Bezugsrechte (Option 1) und Bundeswertpapiere (Option 3) vorgesehen. Fonds und Optionsscheine werden nicht per Spezieller Auktion gehandelt.'},
+{id:132,type:'MC',q:'Welche Ordertypen stehen in der Fortlaufenden Auktion mit Spezialist zur Verfügung?',opts:['Stop Order','Market-to-Limit Order','Iceberg Order','One-cancels-Other Order'],correct:[0,3],explain:'In der FA stehen Stop Orders und One-cancels-Other Orders zur Verfügung. Market-to-Limit Orders und Iceberg Orders sind in der FA nicht verfügbar.'},
+{id:133,type:'MC',q:'Im Handelsmodell Fortlaufende Auktion mit Spezialist: Welche der folgenden Pflichten ergeben sich für den Spezialisten?',opts:['Eingehende Quote-Anforderungen sollen unverzüglich beantwortet werden.','Informationen aus der Spezialistentätigkeit dürfen nicht an Dritte weitergegeben werden.','Fortlaufende Bereitstellung unverbindlicher Quotes auf Basis der aktuellen Marktlage.','Einsatz eines Limit-Kontrollsystems zur fortlaufenden Überprüfung der vorliegenden Orders auf deren Ausführbarkeit.'],correct:[0,1,2,3],explain:'Alle vier Pflichten gelten: unverzügliche Quote-Beantwortung, Informationsvertraulichkeit, fortlaufende Standard-Quotes und Limit-Kontrollsystem. Diese Pflichten sichern die Qualität der Spezialistentätigkeit.'},
+{id:134,type:'MC',q:'Welche Aussagen gelten für die Freeze-Phase einer Fortlaufenden Auktion mit Spezialist?',opts:['Nur der Quote des Spezialisten wird angezeigt.','Sie hat ein zufälliges Ende.','Der Spezialist kann für eigene Rechnung oder andere Handelsteilnehmer Orders eingeben und diese ändern oder löschen.','Es gibt keine definierte Mindestdauer.'],correct:[0,2,3],explain:'In der Freeze-Phase: Nur der Spezialistenquote ist sichtbar (Option 1). Der Spezialist kann Orders eingeben/ändern/löschen (Option 3). Es gibt keine Mindestdauer (Option 4). Sie hat kein zufälliges Ende — der Spezialist entscheidet über den Übergang (Option 2 falsch).'},
+{id:135,type:'MC',q:'Welche Aussagen gelten für die Voraufrufphase einer Fortlaufenden Auktion mit Spezialist?',opts:['Handelsteilnehmer können keine Orders eingeben.','Das Orderbuch ist vollständig offen.','Der Spezialist kann für eigene Rechnung Orders eingeben, ändern oder löschen oder für andere Handelsteilnehmer Orders eingeben und löschen.','Der Spezialist kann Quotes einstellen oder löschen.'],correct:[2,3],explain:'In der Voraufrufphase kann der Spezialist Orders und Quotes verwalten (Optionen 3 und 4). Handelsteilnehmer können Orders eingeben (Option 1 falsch). Das Orderbuch ist nicht vollständig offen für alle (Option 2 falsch).'},
+{id:136,type:'SC',q:'Was muss der für den Spezialisten tätige Börsenhändler grundsätzlich tun, wenn der zu erwartende Preis einer Aktie (letzter Preis > 5,00 €) um mehr als 10 Prozent abweichen wird?',opts:['Er muss einen angepassten Standard-Quote (unverbindlichen Quote) stellen und der Wechsel in die Freeze-Phase (gemäß Börsenordnung: Aufrufphase) darf erst nach einer Frist von 5 Minuten erfolgen.','Er muss einen angepassten Matching-Quote (verbindlichen Quote) stellen und der Wechsel in die Freeze-Phase darf erst nach einer Frist von 10 Minuten erfolgen.','Er muss einen angepassten Standard-Quote (unverbindlichen Quote) stellen und der Wechsel in die Freeze-Phase darf erst nach einer Frist von 15 Minuten erfolgen.','Er muss einen angepassten Standard-Quote (unverbindlichen Quote) stellen und der Wechsel in die Voraufrufphase darf erst nach einer Frist von 10 Minuten erfolgen.'],correct:[0],explain:'Bei einer erwarteten Preisabweichung >10% muss zunächst ein angepasster Standard-Quote gestellt werden, und der Wechsel in die Freeze-Phase darf erst nach 5 Minuten erfolgen. Diese Frist gibt dem Markt Zeit, auf die neue Preislage zu reagieren.'},
+{id:137,type:'SC',q:'Was muss der für den Spezialisten tätige Börsenhändler bei der Feststellung eines umsatzlosen Bewertungspreises berücksichtigen?',opts:['Ein Price-without-Turnover (PWT)-Quote darf nur nach 12:00 Uhr MEZ eingegeben werden.','Die Eingabe eines PWT-Quotes ist nur auf der Grundlage eines zuvor ohne Volumen eingestellten Standard-Quotes zulässig.','Die Eingabe eines PWT-Quotes ist nur auf der Grundlage eines zuvor mit Volumen eingestellten Standard-Quotes zulässig.','Keine der vorstehenden Antworten ist richtig.'],correct:[2],explain:'Ein PWT-Quote (Preis ohne Umsatz) ist nur zulässig, wenn zuvor ein Standard-Quote MIT Volumen gestellt wurde. Dies verhindert, dass ohne vorangehende Marktaktivität ein Bewertungspreis festgestellt wird.'},
+{id:138,type:'SC',q:'Welche der folgenden Aussagen gilt für den Quote-Request-getriebenen Handel in der Fortlaufenden Auktion mit Spezialist?',opts:['Für den Fall, dass kein adäquater Quote vorliegt, können Quote-Requests mit einer entsprechenden Fehlermeldung abgelehnt werden.','Der Quote-Request muss einen nummerischen Wert, die sog. Quote-ID, enthalten.','Die Quote-Antwort des Spezialisten und die daraufhin eingegebene Order beziehen sich direkt aufeinander und können mittels der Quote-ID einander zugeordnet werden.','Alle der vorstehenden Antworten sind richtig.'],correct:[3],explain:'Alle drei Aussagen sind korrekt: Quote-Requests können abgelehnt werden, müssen eine numerische Quote-ID enthalten, und die Verknüpfung zwischen Antwort und Order erfolgt via Quote-ID.'},
+{id:139,type:'SC',q:'Welche der folgenden Pflichten muss ein für einen Spezialisten tätiger Börsenhändler nicht erfüllen?',opts:['Bei Wertpapieren in Fremdwährung hat zur Eingabe des Matching Quotes zusätzlich die Eingabe eines marktgerechten Wechselkurses zu erfolgen.','Sicherstellen, dass für jedes Wertpapier pro Handelstag mindestens eine Preisfeststellung erfolgt.','Zur Wiederaufnahme des Handels nach einer Aussetzung muss eine „Spezielle Auktion" durchgeführt werden.','Während der Handelszeit fortlaufend Standard-Quotes auf der Basis der aktuellen Orderlage stellen.'],correct:[2],explain:'Nach einer Handelsaussetzung muss keine "Spezielle Auktion" durchgeführt werden — der Handel wird regulär wiederaufgenommen. Alle anderen Pflichten (Wechselkurs bei Fremdwährung, Preisfeststellung, Standard-Quotes) sind korrekt.'},
+{id:140,type:'SC',q:'Welche Mindestanforderungen muss das Limit-Kontrollsystem des Spezialisten erfüllen?',opts:['Ständige Überprüfung aller eingehenden und im Orderbuch befindlichen Orders auf ihre Ausführbarkeit.','Unverzügliche Anzeige von Verkauf-Stop Orders bei Erreichen der Geldseite des Standard-Quotes.','Unverzügliche Anzeige der Ausführbarkeit von Orders (Market und Limit Orders) im Orderbuch gegen den Standard-Quote oder gegen andere Orders.','Alle der oben genannten Anforderungen.'],correct:[3],explain:'Das Limit-Kontrollsystem muss alle drei Anforderungen erfüllen: kontinuierliche Überprüfung aller Orders, Anzeige von ausgelösten Stop Orders, und Anzeige ausführbarer Market- und Limit Orders.'},
+{id:141,type:'SC',q:'Welche Eingabe kann der Spezialist in der Freeze-Phase nicht machen?',opts:['Ordereingabe für andere Handelsteilnehmer','Wechselkurseingabe','Eigene Ordereingabe','Eingabe eines Standard-Quotes (indikativen Quotes)'],correct:[3],explain:'In der Freeze-Phase kann der Spezialist Orders eingeben (eigene und für andere) und Wechselkurse eingeben. Was er NICHT kann: einen Standard-Quote (indikativen Quote) eingeben — in der Freeze-Phase ist nur der Matching-Quote relevant.'},
+{id:142,type:'TF',q:'Liegt keine ausführbare Orderbuchsituation vor, kann auf Basis der Geldseite des Spezialisten-Quotes ein Preis ohne Umsatz generiert werden.',opts:['Richtig','Falsch'],correct:[0],explain:'Richtig. Wenn keine Orders vorhanden sind, die gegeneinander ausgeführt werden können, kann der Spezialist einen Preis ohne Umsatz (PWT) festlegen, basierend auf der Geldseite seines Quotes.'},
+{id:143,type:'TF',q:'In der Fortlaufenden Auktion wird der Auktionspreis ausschließlich auf Basis des Spezialisten-Quotes ermittelt.',opts:['Richtig','Falsch'],correct:[1],explain:'Falsch. Der Auktionspreis wird auf Basis des Matching-Quotes UND der Orderbuchlage ermittelt. Der Quote allein bestimmt die Preisspanne, aber das tatsächliche Ausführungsvolumen und der genaue Preis ergeben sich aus dem kombinierten Orderbuch.'},
+{id:144,type:'TF',q:'Führt die Berücksichtigung des Überhangs in der Fortlaufenden Auktion zu keinem eindeutigen Auktionspreis, wird als weiteres Kriterium der Referenzpreis hinzugezogen.',opts:['Richtig','Falsch'],correct:[1],explain:'Falsch. In der FA wird nicht der Referenzpreis herangezogen, sondern der Mittelwert der in Frage kommenden Limitstufen. Dies unterscheidet die FA vom Xetra-Auktionsmodell, wo der Referenzpreis als Tiebreaker dient.'},
+{id:145,type:'MC',q:'Wie wird der Auktionspreis in der Fortlaufenden Auktion mit Spezialist ermittelt?',opts:['Aus dem Mittelwert aller am Ende der Aufrufphase vorliegenden Limite.','Innerhalb einer von Cash Markets Operations vorgegebenen Preisspanne.','Innerhalb der durch den Quote des Spezialisten vorgegebenen Preisspanne (einschließlich Geld-Brieflimit des Quotes).','Auf Basis des Spezialisten-Quotes und der mit Ende der Freeze-Phase fixierten Orderbuchlage.'],correct:[2,3],explain:'Der Auktionspreis muss innerhalb der vom Matching-Quote vorgegebenen Preisspanne liegen (Option 3) und wird auf Basis des Quotes plus der am Ende der Freeze-Phase fixierten Orderbuchlage ermittelt (Option 4). Der Mittelwert aller Limite und CMO-Vorgaben spielen keine Rolle.'},
+{id:146,type:'MC',q:'Wie kommt ein Preis ohne Umsatz im Spezialistenmodell zustande?',opts:['Cash Markets Operations ermittelt den Preis.','Die Preisfeststellung wird durch die Eingabe eines separaten Quotes (Preis-ohne-Umsatz-Quote) ausgelöst.','Nach der Eingabe eines Preis-ohne-Umsatz-Quotes wird der Preis ohne Umsatz auf Basis der Geldseite des Quotes generiert.','Der Preis wird aus dem Mittelwert der vorliegenden Orderlimite gebildet.'],correct:[1,2],explain:'Ein PWT-Preis entsteht durch Eingabe eines speziellen PWT-Quotes durch den Spezialisten (Option 2) und wird dann auf Basis der Geldseite dieses Quotes festgestellt (Option 3). CMO und Orderbuch-Mittelwert spielen keine Rolle.'},
+{id:147,type:'MC',q:'Welche Grundregeln gelten für die Preisermittlung in der Fortlaufenden Auktion mit Spezialist?',opts:['Der Auktionspreis wird nach dem modifizierten Meistausführungsprinzip ermittelt.','Der Auktionspreis wird vom Spezialisten ermittelt.','Liegen keine ausführbaren Orders vor, ist die Feststellung eines Auktionspreises mit Umsatz nicht möglich.','Der Auktionspreis wird vom Handelssystem ermittelt.'],correct:[0,2,3],explain:'Das Handelssystem ermittelt den Preis (Option 4) nach dem modifizierten Meistausführungsprinzip (Option 1). Ohne ausführbare Orders ist kein Umsatz-Auktionspreis möglich (Option 3). Der Spezialist ermittelt den Preis nicht selbst (Option 2 falsch) — er löst die Ermittlung durch seinen Matching-Quote aus.'},
+{id:148,type:'SC',q:'Welche Regel wird angewendet, wenn bei der Preisermittlung mehr als eine Limitstufe vorliegt, zu der das höchste ausführbare Ordervolumen und der niedrigste Überhang bestehen?',opts:['Sofern für jede der in Frage kommenden Limitstufen der Überhang auf der Kaufseite liegt, wird die höchste dieser möglichen Limitstufen zugrunde gelegt.','Der Auktionspreis wird vom Spezialisten ermittelt.','Es kann kein Auktionspreis ermittelt werden.','Keine der vorstehenden Antworten ist richtig.'],correct:[0],explain:'Bei gleichem Volumen und gleichem Überhang: Liegt der Überhang bei allen Limitstufen auf der Kaufseite, wird das höchste Limit gewählt. Liegt er auf der Verkaufseite, das niedrigste. Bei Überhang auf verschiedenen Seiten greift der Referenzpreis.'},
+{id:149,type:'SC',q:'Wann kommt es in der Fortlaufenden Auktion mit Spezialist zu einem Preis ohne Umsatz?',opts:['Wenn die Preisabweichung zum letzten Preis einen bestimmten Prozentsatz übersteigt.','Wenn das Wertpapier vom Handel ausgesetzt ist.','Wenn der Überhang im Orderbuch zum Zeitpunkt der Preisermittlung zu groß ist.','Wenn ein entsprechender Quote eingegeben wurde und keine ausführbare Orderbuchsituation vorliegt.'],correct:[3],explain:'Ein Preis ohne Umsatz entsteht nur, wenn zwei Bedingungen erfüllt sind: Der Spezialist gibt einen PWT-Quote ein, UND es liegt keine ausführbare Orderbuchsituation vor. Preisabweichungen und Überhang allein führen nicht zu PWT.'},
+{id:150,type:'SC',q:'Welche Regel wird angewendet, wenn die Berücksichtigung des Überhangs bei der Preisermittlung in der Fortlaufenden Auktion mit Spezialist zu keinem eindeutigen Auktionspreis führt?',opts:['Der Referenzpreis wird für die Festlegung des Auktionspreises herangezogen.','Der Auktionspreis wird vom Spezialisten ermittelt.','Der Mittelwert wird aus der höchsten Limitstufe mit Überhang auf der Geldseite sowie der niedrigsten Limitstufe mit Überhang auf der Briefseite berechnet.','Keine der vorstehenden Antworten ist richtig.'],correct:[2],explain:'In der FA gilt: Wenn der Überhang keinen eindeutigen Preis liefert, wird der Mittelwert aus der höchsten Kaufüberhang-Limitstufe und der niedrigsten Verkaufsüberhang-Limitstufe berechnet. Dies unterscheidet die FA von Xetra, wo der Referenzpreis als Tiebreaker gilt.'}
+];
+
+let S={
+  mode:null,qs:[],cur:0,answers:{},revealed:{},
+  timeLeft:1800,timerInt:null,examStart:null,
+  progress:{},streak:{},bestStreak:0,curStreak:0,
+  totalAnswered:0,totalCorrect:0,
+  examHistory:[],lastResult:null,
+  selectedTopics:TOPICS.map(t=>t.id)
+};
+
+function load(){
+  try{
+    const d=JSON.parse(localStorage.getItem('fwb_v4')||'{}');
+    S.progress=d.progress||{};
+    S.streak=d.streak||{};
+    S.bestStreak=d.bestStreak||0;
+    S.totalAnswered=d.totalAnswered||0;
+    S.totalCorrect=d.totalCorrect||0;
+    S.examHistory=d.examHistory||[];
+  }catch(e){}
+}
+function save(){
+  try{
+    localStorage.setItem('fwb_v4',JSON.stringify({
+      progress:S.progress,streak:S.streak,bestStreak:S.bestStreak,
+      totalAnswered:S.totalAnswered,totalCorrect:S.totalCorrect,
+      examHistory:S.examHistory
+    }));
+  }catch(e){}
+}
+function mastered(){return Q.filter(q=>(S.streak[q.id]||0)>=2).length;}
+function seen(){return Object.keys(S.progress).length;}
+function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  if(id==='home')refreshHome();
+}
+function refreshHome(){
+  document.getElementById('stat-mastered').textContent=mastered();
+  document.getElementById('stat-seen').textContent=seen();
+  document.getElementById('stat-streak').textContent=S.bestStreak;
+}
+
+function renderTable(t){
+  if(!t)return'';
+  if(t.type==='auction'){
+    let rows='';
+    t.rows.forEach(r=>{rows+='<tr>'+r.map(c=>`<td>${c}</td>`).join('')+'</tr>';});
+    return`<table class="ob-table"><caption>Kauf (links) — Limit (Mitte) — Verkauf (rechts)</caption>
+<tr><th colspan="3">Kauf</th><th>Limit</th><th colspan="3">Verkauf</th></tr>
+<tr><th>Volumen</th><th>Kum.</th><th>Überhang</th><th></th><th>Überhang</th><th>Kum.</th><th>Volumen</th></tr>
+${rows}</table>`;
+  }
+  if(t.type==='bidask'){
+    let rows='';
+    t.rows.forEach(r=>{rows+='<tr>'+r.map(c=>`<td>${c}</td>`).join('')+'</tr>';});
+    return`<table class="ob-table"><caption>Bid (links) — Ask (rechts)</caption>
+<tr><th colspan="2">Bid</th><th colspan="2">Ask</th></tr>
+<tr><th>Quantity</th><th>Limit</th><th>Limit</th><th>Quantity</th></tr>
+${rows}</table>`;
+  }
+  return'';
+}
+
+function startExam(){
+  S.mode='exam';
+  S.qs=shuffle([...Q]).slice(0,50);
+  S.cur=0;S.answers={};S.revealed={};
+  S.timeLeft=1800;S.examStart=Date.now();
+  startTimer();renderQ();showScreen('quiz');
+}
+function showTopicPicker(){
+  let html='';
+  TOPICS.forEach(t=>{
+    const m=t.qs.filter(id=>(S.streak[id]||0)>=2).length;
+    const sel=S.selectedTopics.includes(t.id);
+    html+=`<div class="topic-pick-item ${sel?'selected':''}" onclick="toggleTopic('${t.id}',this)">
+      <input type="checkbox" ${sel?'checked':''} onclick="event.stopPropagation()">
+      <span>${t.name}</span>
+      <span class="tp-count">${m}/${t.qs.length} ✓</span></div>`;
+  });
+  document.getElementById('topic-list').innerHTML=html;
+  showScreen('topics');
+}
+function toggleTopic(id,el){
+  const idx=S.selectedTopics.indexOf(id);
+  if(idx>-1){S.selectedTopics.splice(idx,1);el.classList.remove('selected');el.querySelector('input').checked=false;}
+  else{S.selectedTopics.push(id);el.classList.add('selected');el.querySelector('input').checked=true;}
+}
+function selectAllTopics(){
+  S.selectedTopics=TOPICS.map(t=>t.id);
+  document.querySelectorAll('.topic-pick-item').forEach(el=>{el.classList.add('selected');el.querySelector('input').checked=true;});
+}
+function startTrainFromTopics(){
+  if(!S.selectedTopics.length){alert('Please select at least one topic.');return;}
+  const ids=new Set(TOPICS.filter(t=>S.selectedTopics.includes(t.id)).flatMap(t=>t.qs));
+  S.mode='train';S.qs=shuffle(Q.filter(q=>ids.has(q.id)));
+  S.cur=0;S.answers={};S.revealed={};
+  stopTimer();document.getElementById('timer-badge').style.display='none';
+  renderQ();showScreen('quiz');
+}
+function startWeak(){
+  const weak=Q.filter(q=>!S.progress[q.id]||(S.streak[q.id]||0)<2);
+  if(!weak.length){alert('No weak spots yet — all 150 mastered!');return;}
+  S.mode='train';S.qs=shuffle(weak);
+  S.cur=0;S.answers={};S.revealed={};
+  stopTimer();document.getElementById('timer-badge').style.display='none';
+  renderQ();showScreen('quiz');
+}
+function startTimer(){
+  stopTimer();
+  const el=document.getElementById('timer-badge');
+  el.style.display='';
+  function tick(){
+    if(S.timeLeft<=0){stopTimer();finishSession();return;}
+    const m=Math.floor(S.timeLeft/60),sec=S.timeLeft%60;
+    el.textContent=m+':'+(sec<10?'0':'')+sec;
+    el.className='timer-badge';
+    if(S.timeLeft<=300)el.classList.add('warn');
+    if(S.timeLeft<=60)el.classList.add('crit');
+    S.timeLeft--;
+  }
+  tick();S.timerInt=setInterval(tick,1000);
+}
+function stopTimer(){if(S.timerInt){clearInterval(S.timerInt);S.timerInt=null;}}
+
+function renderQ(){
+  const q=S.qs[S.cur];
+  const total=S.qs.length;
+  document.getElementById('q-counter').textContent='Q '+(S.cur+1)+' / '+total;
+  document.getElementById('prog-fill').style.width=((S.cur/total)*100)+'%';
+  const pill=document.getElementById('q-pill');
+  if(q.type==='TF'){pill.className='q-type-pill pill-tf';pill.textContent='Richtig / Falsch';}
+  else if(q.type==='SC'){pill.className='q-type-pill pill-sc';pill.textContent='Single Choice';}
+  else{pill.className='q-type-pill pill-mc';pill.textContent='Multiple Choice — mehrere Antworten möglich';}
+  const isMastered=(S.streak[q.id]||0)>=2;
+  document.getElementById('q-text').innerHTML=q.q+(isMastered?'<span class="mastered-tag">✓ Mastered</span>':'');
+  document.getElementById('q-table-area').innerHTML=renderTable(q.table||null);
+  document.getElementById('explain-box').className='explain-box';
+  document.getElementById('explain-text').textContent='';
+  const sel=S.answers[q.id]||[];
+  const rev=!!S.revealed[q.id];
+  let html='';
+  if(q.type==='TF'){
+    html='<div class="tf-row">';
+    q.opts.forEach((o,i)=>{
+      const selected=sel.includes(i);
+      let cls='tf-btn';let sub='';
+      if(rev){
+        const correct=q.correct.includes(i);
+        if(selected&&correct){cls+=' correct';sub='<span class="tf-sub">✓ Correct</span>';}
+        else if(selected&&!correct){cls+=' wrong';sub='<span class="tf-sub">✗ Your answer</span>';}
+        else if(!selected&&correct){cls+=' missed';sub='<span class="tf-sub">✓ Correct answer</span>';}
+      }else if(selected)cls+=' selected';
+      html+=`<button class="${cls}" onclick="pick(${i})" ${rev?'disabled':''}>${o}${sub}</button>`;
+    });
+    html+='</div>';
+  }else{
+    html='<div class="options">';
+    q.opts.forEach((o,i)=>{
+      const selected=sel.includes(i);
+      const isCircle=q.type==='SC';
+      let cls='opt'+(isCircle?' opt-sc':'');
+      let mark='';let tags='';
+      if(rev){
+        const correct=q.correct.includes(i);
+        if(selected&&correct){cls+=' correct';mark='✓';tags='<span class="opt-tag tag-correct">✓ Correct</span>';}
+        else if(selected&&!correct){cls+=' wrong';mark='✗';tags='<span class="opt-tag tag-you">Your answer</span>';}
+        else if(!selected&&correct){cls+=' missed';mark='✓';tags='<span class="opt-tag tag-correct">Correct answer</span>';}
+      }else if(selected){cls+=' selected';mark=isCircle?'●':'✓';}
+      html+=`<button class="${cls}" onclick="pick(${i})" ${rev?'disabled':''}><span class="opt-num">${i+1}</span><span class="opt-marker">${mark}</span><span class="opt-text">${o}</span>${rev?tags:''}</button>`;
+    });
+    html+='</div>';
+  }
+  document.getElementById('q-options').innerHTML=html;
+  document.getElementById('feedback-area').innerHTML='';
+  const isLast=S.cur===S.qs.length-1;
+  const inExam=S.mode==='exam';
+  document.getElementById('btn-check').style.display=(!rev&&!inExam)?'inline-block':'none';
+  document.getElementById('btn-explain').style.display=rev?'inline-block':'none';
+  document.getElementById('btn-next').style.display=(rev&&!isLast)?'inline-block':'none';
+  document.getElementById('btn-submit').style.display=(inExam||(rev&&isLast))?'inline-block':'none';
+  if(inExam){
+    document.getElementById('btn-check').style.display='none';
+    document.getElementById('btn-explain').style.display='none';
+    buildExamNav();
+    document.getElementById('exam-nav').style.display='';
+  }else{
+    document.getElementById('exam-nav').style.display='none';
+  }
+}
+function buildExamNav(){
+  const dots=document.getElementById('q-dots');
+  let html='';
+  S.qs.forEach((q,i)=>{
+    const hasAns=(S.answers[q.id]||[]).length>0;
+    const isCur=i===S.cur;
+    const bg=isCur?'#1a1a2e':hasAns?'#22c55e':'#e0e0d8';
+    const color=isCur||hasAns?'white':'#666';
+    html+=`<div onclick="jumpTo(${i})" style="width:28px;height:28px;border-radius:6px;background:${bg};color:${color};font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer">${i+1}</div>`;
+  });
+  dots.innerHTML=html;
+}
+function jumpTo(i){S.cur=i;renderQ();}
+
+function pick(i){
+  const q=S.qs[S.cur];
+  if(S.revealed[q.id])return;
+  if(!S.answers[q.id])S.answers[q.id]=[];
+  const sel=S.answers[q.id];
+  if(q.type==='TF'||q.type==='SC'){S.answers[q.id]=[i];}
+  else{const idx=sel.indexOf(i);if(idx>-1)sel.splice(idx,1);else sel.push(i);}
+  renderQ();
+  if(S.mode!=='exam')document.getElementById('btn-check').style.display='inline-block';
+}
+
+function checkAnswer(){
+  const q=S.qs[S.cur];
+  const sel=S.answers[q.id]||[];
+  if(!sel.length){
+    document.getElementById('feedback-area').innerHTML='<div class="feedback-box fb-wrong">Bitte zuerst eine Antwort auswählen.</div>';
+    return;
+  }
+  S.revealed[q.id]=true;
+  const correct=q.correct;
+  const isRight=sel.length===correct.length&&correct.every(c=>sel.includes(c));
+  if(!S.progress[q.id])S.progress[q.id]={right:0,wrong:0};
+  S.totalAnswered++;
+  if(isRight){
+    S.progress[q.id].right++;S.totalCorrect++;
+    S.streak[q.id]=(S.streak[q.id]||0)+1;
+    S.curStreak++;if(S.curStreak>S.bestStreak)S.bestStreak=S.curStreak;
+  }else{
+    S.progress[q.id].wrong++;
+    S.streak[q.id]=0;S.curStreak=0;
+  }
+  save();
+  const fb=document.getElementById('feedback-area');
+  fb.innerHTML=isRight
+    ?'<div class="feedback-box fb-correct">✓ Correct!</div>'
+    :`<div class="feedback-box fb-wrong">✗ Wrong — see highlighted answer above</div>`;
+  renderQ();
+}
+
+function showExplain(){
+  const q=S.qs[S.cur];
+  const box=document.getElementById('explain-box');
+  document.getElementById('explain-text').textContent=q.explain||'No explanation available.';
+  box.className='explain-box show';
+}
+
+function nextQ(){S.cur++;renderQ();}
+
+function fmtTime(secs){
+  const m=Math.floor(secs/60),s=secs%60;
+  return m+'m '+(s<10?'0':'')+s+'s';
+}
+
+function finishSession(){
+  stopTimer();
+  const timeTaken=S.examStart?Math.round((Date.now()-S.examStart)/1000):0;
+  let pts=0,maxPts=0,answered=0;
+  let tfC=0,tfT=0,scC=0,scT=0,mcC=0,mcT=0;
+  const details=[];
+  S.qs.forEach(q=>{
+    const mp=PT[q.type];maxPts+=mp;
+    const sel=S.answers[q.id]||[];
+    if(sel.length)answered++;
+    let earned=0;
+    if(q.type==='TF'||q.type==='SC'){
+      earned=(sel.length===1&&q.correct[0]===sel[0])?2:0;
+      if(q.type==='TF'){tfT++;if(earned)tfC++;}else{scT++;if(earned)scC++;}
+    }else{
+      let p=0;q.opts.forEach((_,i)=>{if(sel.includes(i)===q.correct.includes(i))p++;else p--;});
+      earned=Math.max(0,p);mcT++;if(earned===mp)mcC++;
+    }
+    pts+=earned;
+    details.push({q,sel,earned,mp,isRight:earned===mp});
+  });
+  const pct=maxPts>0?Math.round(pts/maxPts*100):0;
+  const pass=pct>=75;
+  S.lastResult={pts,maxPts,pct,pass,answered,details,tfC,tfT,scC,scT,mcC,mcT,timeTaken};
+  // Update mastery/progress for exam mode only (train mode updates per-question in checkAnswer)
+  if(S.mode==='exam'){
+    details.forEach(d=>{
+      if(!d.sel.length)return;
+      if(!S.progress[d.q.id])S.progress[d.q.id]={right:0,wrong:0};
+      S.totalAnswered++;
+      if(d.isRight){
+        S.progress[d.q.id].right++;S.totalCorrect++;
+        S.streak[d.q.id]=(S.streak[d.q.id]||0)+1;
+        S.curStreak++;if(S.curStreak>S.bestStreak)S.bestStreak=S.curStreak;
+      }else{
+        S.progress[d.q.id].wrong++;
+        S.streak[d.q.id]=0;S.curStreak=0;
+      }
+    });
+  }
+  if(S.mode==='exam'){
+    const now=new Date();
+    S.examHistory.unshift({
+      date:now.toLocaleDateString('de-DE')+' '+now.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}),
+      pct,pts,maxPts,pass,
+      timeTaken,
+      questions:S.qs.length
+    });
+    if(S.examHistory.length>20)S.examHistory.length=20;
+    save();
+  }
+  document.getElementById('res-title').textContent=S.mode==='exam'?'Exam complete':'Training complete';
+  const ring=document.getElementById('res-ring');
+  ring.className='score-ring '+(pass?'pass':'fail');
+  document.getElementById('res-pct').textContent=pct+'%';
+  document.getElementById('res-sub').textContent=pts+' / '+maxPts+' pts';
+  const verdict=document.getElementById('res-verdict');
+  verdict.className='verdict '+(pass?'pass':'fail');
+  verdict.textContent=pass?(S.mode==='exam'?'✓ Passed — you would pass the real exam!':'✓ Great session — 75%+ scored!'):'✗ Not quite — you need 75% to pass. Keep going!';
+  document.getElementById('res-answered').textContent=answered+' / '+S.qs.length;
+  document.getElementById('res-pts').textContent=pts;
+  document.getElementById('res-max').textContent=maxPts;
+  document.getElementById('res-thresh').textContent=Math.ceil(maxPts*0.75)+' pts';
+  document.getElementById('res-tf').textContent=tfC+' / '+tfT+(tfT?` (${Math.round(tfC/tfT*100)}%)`:'');
+  document.getElementById('res-sc').textContent=scC+' / '+scT+(scT?` (${Math.round(scC/scT*100)}%)`:'');
+  document.getElementById('res-mc').textContent=mcC+' / '+mcT+(mcT?` (${Math.round(mcC/mcT*100)}%)`:'');
+  document.getElementById('res-time').textContent=fmtTime(timeTaken);
+  showScreen('result');
+}
+
+function showReview(){
+  const details=S.lastResult?.details||[];
+  let html='';
+  details.forEach(d=>{
+    const cls=d.isRight?'ri-correct':'ri-wrong';
+    let optsHtml='<div class="ri-opts">';
+    d.q.opts.forEach((o,i)=>{
+      const wasSelected=d.sel.includes(i);
+      const isCorrect=d.q.correct.includes(i);
+      let optCls='ri-opt ro-neutral';
+      let icon='';
+      if(wasSelected&&isCorrect){optCls='ri-opt ro-correct';icon='✓';}
+      else if(wasSelected&&!isCorrect){optCls='ri-opt ro-wrong';icon='✗';}
+      else if(!wasSelected&&isCorrect){optCls='ri-opt ro-correct';icon='→';}
+      else{icon=' ';}
+      optsHtml+=`<div class="${optCls}"><span class="ri-opt-icon">${icon}</span><span>${i+1}. ${o}</span></div>`;
+    });
+    optsHtml+='</div>';
+    const explainHtml=d.q.explain?`<div class="ri-explain">💡 ${d.q.explain}</div>`:'';
+    html+=`<div class="review-item ${cls}">
+      <div class="ri-meta">Q${d.q.id} · ${d.q.type} · ${d.earned}/${d.mp} pts</div>
+      <div class="ri-q">${d.q.q}</div>
+      ${optsHtml}${explainHtml}
+    </div>`;
+  });
+  document.getElementById('review-list').innerHTML=html;
+  showScreen('review');
+}
+
+function filterReview(type,el){
+  document.querySelectorAll('.rfchip').forEach(c=>c.classList.remove('active'));el.classList.add('active');
+  document.querySelectorAll('.review-item').forEach(item=>{
+    if(type==='all')item.style.display='';
+    else if(type==='wrong')item.style.display=item.classList.contains('ri-wrong')?'':'none';
+    else item.style.display=item.classList.contains('ri-correct')?'':'none';
+  });
+}
+
+function showMastery(){
+  const m=mastered();
+  document.getElementById('m-mastered').textContent=m;
+  document.getElementById('m-remaining').textContent=150-m;
+  document.getElementById('m-total-answered').textContent=S.totalAnswered;
+  const avgPct=S.totalAnswered>0?Math.round(S.totalCorrect/S.totalAnswered*100)+'%':'—';
+  document.getElementById('m-avg-correct').textContent=avgPct;
+  // Exam ready check — 3 consecutive passes
+  const recentExams=S.examHistory.slice(0,3);
+  const examReady=recentExams.length>=3&&recentExams.every(e=>e.pass);
+  const erArea=document.getElementById('exam-ready-area');
+  if(examReady){
+    erArea.innerHTML=`<div class="exam-ready-banner"><div class="er-icon">🏆</div><div class="er-text"><h3>Exam Ready!</h3><p>You passed your last 3 practice exams in a row. You are ready for the real exam!</p></div></div>`;
+  }else{
+    const needed=3-recentExams.filter(e=>e.pass).length;
+    erArea.innerHTML=`<div style="background:white;border:1px solid #e8e8e0;border-radius:12px;padding:14px;margin-bottom:16px;font-size:13px;color:#666">🎯 Pass ${recentExams.length<3?3-recentExams.length:needed} more exam${needed!==1?'s':''} in a row to become <strong>Exam Ready</strong>.</div>`;
+  }
+  // Topic mastery
+  let topicsHtml='';
+  TOPICS.forEach(t=>{
+    const total=t.qs.length;
+    const tm=t.qs.filter(id=>(S.streak[id]||0)>=2).length;
+    const pct=Math.round(tm/total*100);
+    topicsHtml+=`<div class="mastery-topic"><span class="mt-name">${t.name}</span><div class="mt-right"><span class="mt-count">${tm}/${total}</span><div class="mt-bar"><div class="mt-fill${pct===100?' full':''}" style="width:${pct}%"></div></div></div></div>`;
+  });
+  document.getElementById('mastery-topics').innerHTML=topicsHtml;
+  // Exam history
+  let histHtml='';
+  if(!S.examHistory.length){
+    histHtml='<div style="background:white;border:1px solid #e8e8e0;border-radius:12px;padding:20px;text-align:center;color:#aaa;font-size:14px">No exams taken yet. Start an exam to see your history here.</div>';
+  }else{
+    S.examHistory.forEach((e,i)=>{
+      histHtml+=`<div class="eh-item">
+        <div class="eh-num">#${i+1}</div>
+        <div class="eh-body">
+          <div class="eh-date">${e.date}</div>
+          <div class="eh-score ${e.pass?'pass':'fail'}">${e.pct}% — ${e.pts}/${e.maxPts} pts</div>
+          <div class="eh-detail">Time: ${fmtTime(e.timeTaken)} · ${e.questions} questions</div>
+        </div>
+        <div class="eh-badge ${e.pass?'pass':'fail'}">${e.pass?'PASS':'FAIL'}</div>
+      </div>`;
+    });
+  }
+  document.getElementById('exam-history-list').innerHTML=histHtml;
+  showScreen('mastery');
+}
+
+function confirmBack(){
+  if(S.mode==='exam'&&Object.keys(S.answers).length>0){
+    if(!confirm('Leave the exam? Your progress will be lost.'))return;
+  }
+  stopTimer();showScreen('home');
+}
+
+document.addEventListener('keydown',e=>{
+  if(!document.getElementById('screen-quiz').classList.contains('active'))return;
+  const q=S.qs[S.cur];if(!q)return;
+  if(e.key>='1'&&e.key<='4'){pick(parseInt(e.key)-1);}
+  if((e.key==='Enter'||e.key===' ')&&!e.repeat){
+    e.preventDefault();
+    const btnCheck=document.getElementById('btn-check');
+    const btnNext=document.getElementById('btn-next');
+    if(btnNext.style.display!=='none')nextQ();
+    else if(btnCheck.style.display!=='none')checkAnswer();
+  }
+});
+
+load();refreshHome();
+// Show install banner if not dismissed and not already installed
+if(!localStorage.getItem('fwb_banner_dismissed') && !window.navigator.standalone){
+  document.getElementById('install-banner').style.display='block';
+}
+</script>
+</body>
+</html>
